@@ -161,58 +161,58 @@ export function TaskModal({ isOpen, onClose, onSave, task }: TaskModalProps) {
         </header>
         
         {/* Modal Content */}
-        <div className="px-6 py-6 overflow-y-auto bg-background max-h-[calc(90vh-80px)]">
+        <div className="px-6 py-4 overflow-y-auto bg-background max-h-[calc(90vh-80px)]">
           {/* Intro Section */}
-          <div className="text-left mb-8 pb-6 border-b border-border/30">
-            <h3 className="text-2xl font-bold mb-2 text-foreground">
+          <div className="text-left mb-4 pb-3 border-b border-border/30">
+            <h3 className="text-xl font-bold mb-1 text-foreground">
               {task ? 'Edit Task' : 'Add New Task'}
             </h3>
-            <p className="text-muted-foreground text-base leading-relaxed">
+            <p className="text-muted-foreground text-sm leading-relaxed">
               {task ? 'Update your task details below' : 'Create a new task to stay organized and focused'}
             </p>
           </div>
           
-          <div className="space-y-8">
+          <div className="space-y-5">
             {/* Task Details Section */}
-            <fieldset className="space-y-6 p-4 bg-muted/20 rounded-lg border border-border/30">
-              <legend className="mb-4 px-2">
-                <h4 className="text-base font-bold text-foreground mb-1">Task Details</h4>
-                <p className="text-sm text-muted-foreground/80">Give your task a clear title and optional description</p>
+            <fieldset className="space-y-4 p-3 bg-muted/20 rounded-lg border border-border/30">
+              <legend className="mb-2 px-2">
+                <h4 className="text-sm font-semibold text-foreground mb-0.5">Task Details</h4>
+                <p className="text-xs text-muted-foreground/80">Give your task a clear title and optional description</p>
               </legend>
               
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-foreground">Title</label>
+              <div className="space-y-1.5">
+                <label className="text-xs font-medium text-foreground">Title</label>
                 <input
                   type="text"
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
                   placeholder="e.g., Complete quarterly report"
-                  className="w-full px-4 py-3 border-2 border-input rounded-lg bg-background text-foreground placeholder:text-muted-foreground/70 focus:outline-none focus:ring-2 focus:ring-ring focus:border-ring transition-colors shadow-sm"
+                  className="w-full px-3 py-2.5 border-2 border-input rounded-lg bg-background text-foreground placeholder:text-muted-foreground/70 focus:outline-none focus:ring-2 focus:ring-ring focus:border-ring transition-colors shadow-sm"
                   autoFocus
                 />
               </div>
               
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-foreground">Description</label>
+              <div className="space-y-1.5">
+                <label className="text-xs font-medium text-foreground">Description</label>
                 <textarea
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
                   placeholder="Add context, requirements, or notes..."
                   rows={3}
-                  className="w-full px-4 py-3 border-2 border-input rounded-lg bg-background text-foreground placeholder:text-muted-foreground/70 focus:outline-none focus:ring-2 focus:ring-ring focus:border-ring transition-colors resize-none shadow-sm"
+                  className="w-full px-3 py-2.5 border-2 border-input rounded-lg bg-background text-foreground placeholder:text-muted-foreground/70 focus:outline-none focus:ring-2 focus:ring-ring focus:border-ring transition-colors resize-none shadow-sm"
                 />
               </div>
             </fieldset>
 
             {/* Due Date Section */}
-            <fieldset className="space-y-4 p-4 bg-muted/20 rounded-lg border border-border/30">
-              <legend className="mb-4 px-2">
-                <h4 className="text-base font-bold text-foreground mb-1">Due Date</h4>
-                <p className="text-sm text-muted-foreground/80">Set when this task should be completed</p>
+            <fieldset className="space-y-3 p-3 bg-muted/20 rounded-lg border border-border/30">
+              <legend className="mb-2 px-2">
+                <h4 className="text-sm font-semibold text-foreground mb-0.5">Due Date</h4>
+                <p className="text-xs text-muted-foreground/80">Set when this task should be completed</p>
               </legend>
               
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-foreground">Due Date</label>
+              <div className="space-y-1.5">
+                <label className="text-xs font-medium text-foreground">Due Date</label>
                 <DatePicker
                   date={dueDate ? new Date(dueDate) : undefined}
                   onDateChange={(date) => setDueDate(date ? date.toISOString() : '')}
@@ -222,10 +222,10 @@ export function TaskModal({ isOpen, onClose, onSave, task }: TaskModalProps) {
             </fieldset>
 
             {/* Category Section */}
-            <fieldset className="space-y-4 p-4 bg-muted/20 rounded-lg border border-border/30">
-              <legend className="mb-4 px-2">
-                <h4 className="text-base font-bold text-foreground mb-1">Category</h4>
-                <p className="text-sm text-muted-foreground/80">Select a category to organize your task</p>
+            <fieldset className="space-y-3 p-3 bg-muted/20 rounded-lg border border-border/30">
+              <legend className="mb-2 px-2">
+                <h4 className="text-sm font-semibold text-foreground mb-0.5">Category</h4>
+                <p className="text-xs text-muted-foreground/80">Select a category to organize your task</p>
               </legend>
               
               <div className="grid grid-cols-2 gap-2">
@@ -245,17 +245,17 @@ export function TaskModal({ isOpen, onClose, onSave, task }: TaskModalProps) {
             </fieldset>
 
             {/* Checklist Section */}
-            <fieldset className="space-y-4 p-4 bg-muted/20 rounded-lg border border-border/30">
-              <legend className="mb-4 px-2">
-                <h4 className="text-base font-bold text-foreground mb-1">Check List</h4>
-                <p className="text-sm text-muted-foreground/80">Break your task into smaller, manageable steps</p>
+            <fieldset className="space-y-3 p-3 bg-muted/20 rounded-lg border border-border/30">
+              <legend className="mb-2 px-2">
+                <h4 className="text-sm font-semibold text-foreground mb-0.5">Check List</h4>
+                <p className="text-xs text-muted-foreground/80">Break your task into smaller, manageable steps</p>
               </legend>
               
               {/* Checklist items */}
               {checklist.length > 0 && (
-                <div className="space-y-2 max-h-32 overflow-y-auto mb-4">
+                <div className="space-y-2 max-h-32 overflow-y-auto mb-3">
                   {checklist.map((item) => (
-                    <div key={item.id} className="flex items-center space-x-3 p-3 border-2 border-border/40 rounded-lg bg-background/50 hover:bg-muted/30 transition-colors">
+                    <div key={item.id} className="flex items-center space-x-2 p-2.5 border-2 border-border/40 rounded-lg bg-background/50 hover:bg-muted/30 transition-colors">
                       <input
                         type="checkbox"
                         checked={item.done}
@@ -285,7 +285,7 @@ export function TaskModal({ isOpen, onClose, onSave, task }: TaskModalProps) {
                   value={newChecklistItem}
                   onChange={(e) => setNewChecklistItem(e.target.value)}
                   placeholder="Add a checklist item..."
-                  className="flex-1 px-4 py-3 border-2 border-input rounded-lg bg-background text-foreground placeholder:text-muted-foreground/70 focus:outline-none focus:ring-2 focus:ring-ring focus:border-ring transition-colors shadow-sm"
+                  className="flex-1 px-3 py-2.5 border-2 border-input rounded-lg bg-background text-foreground placeholder:text-muted-foreground/70 focus:outline-none focus:ring-2 focus:ring-ring focus:border-ring transition-colors shadow-sm"
                   onKeyPress={(e) => e.key === 'Enter' && addChecklistItem()}
                 />
                 <Button size="sm" onClick={addChecklistItem} aria-label="Add checklist item">
