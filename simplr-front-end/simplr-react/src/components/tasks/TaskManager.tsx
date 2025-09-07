@@ -245,7 +245,7 @@ export function TaskManager() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.1, duration: 0.3 }}
               >
-                <div className="flex items-center justify-between mb-4">
+                <div className="flex flex-col space-y-4 mb-4 sm:flex-row sm:items-center sm:justify-between sm:space-y-0">
                   <div>
                     <motion.h2 
                       className="text-2xl font-bold"
@@ -256,7 +256,7 @@ export function TaskManager() {
                       {getViewTitle()}
                     </motion.h2>
                     <motion.p 
-                      className="text-muted-foreground"
+                      className="text-muted-foreground text-sm sm:text-base"
                       initial={{ opacity: 0, y: 5 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: 0.2, duration: 0.3 }}
@@ -269,31 +269,32 @@ export function TaskManager() {
                   
                   {stats && (
                     <motion.div 
-                      className="flex items-center space-x-4 text-sm"
+                      className="flex flex-col space-y-3 sm:flex-row sm:items-center sm:space-y-0 sm:space-x-4 text-sm"
                       initial={{ opacity: 0, x: 10 }}
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ delay: 0.25, duration: 0.3 }}
                     >
-                      <div className="flex items-center space-x-4">
+                      <div className="flex items-center justify-between sm:justify-start sm:space-x-4">
                         <div className="flex items-center space-x-1 text-muted-foreground">
                           <Clock className="h-4 w-4" />
-                          <span>{stats.today} today</span>
+                          <span className="font-medium">{stats.today} today</span>
                         </div>
                         <div className="flex items-center space-x-1 text-muted-foreground">
                           <Calendar className="h-4 w-4" />
-                          <span>{stats.total} active</span>
+                          <span className="font-medium">{stats.total} active</span>
                         </div>
                         <div className="flex items-center space-x-1 text-muted-foreground">
                           <CheckCircle className="h-4 w-4" />
-                          <span>{stats.completed} done</span>
+                          <span className="font-medium">{stats.completed} done</span>
                         </div>
                       </div>
                       
-                      <div className="flex items-center space-x-2">
+                      <div className="flex flex-col space-y-2 sm:flex-row sm:items-center sm:space-y-0 sm:space-x-2">
                         <motion.div
                           initial={{ opacity: 0, scale: 0.95 }}
                           animate={{ opacity: 1, scale: 1 }}
                           transition={{ delay: 0.3, duration: 0.2 }}
+                          className="w-full sm:w-auto"
                         >
                           <ToggleGroup
                             type="single"
@@ -303,23 +304,23 @@ export function TaskManager() {
                                 setGroupByCategory(value === "categories");
                               }
                             }}
-                            className="bg-muted/50 backdrop-blur-sm rounded-lg p-1 border border-border/50 shadow-sm toggle-group-enhanced"
+                            className="bg-muted/50 backdrop-blur-sm rounded-lg p-1 border border-border/50 shadow-sm toggle-group-enhanced w-full sm:w-auto"
                           >
                             <ToggleGroupItem
                               value="grid"
                               size="sm"
-                              className="h-7 px-3 text-xs font-medium transition-all duration-300 data-[state=on]:bg-background data-[state=on]:text-foreground data-[state=on]:shadow-sm hover:bg-background/50 toggle-item-smooth"
+                              className="h-8 px-3 text-xs font-medium transition-all duration-300 data-[state=on]:bg-background data-[state=on]:text-foreground data-[state=on]:shadow-sm hover:bg-background/50 toggle-item-smooth flex-1 sm:flex-none"
                             >
                               <Grid3X3 className="h-3 w-3 mr-1.5 transition-transform duration-200 group-hover:scale-110" />
-                              Grid
+                              <span className="hidden sm:inline">Grid</span>
                             </ToggleGroupItem>
                             <ToggleGroupItem
                               value="categories"
                               size="sm"
-                              className="h-7 px-3 text-xs font-medium transition-all duration-300 data-[state=on]:bg-background data-[state=on]:text-foreground data-[state=on]:shadow-sm hover:bg-background/50 toggle-item-smooth"
+                              className="h-8 px-3 text-xs font-medium transition-all duration-300 data-[state=on]:bg-background data-[state=on]:text-foreground data-[state=on]:shadow-sm hover:bg-background/50 toggle-item-smooth flex-1 sm:flex-none"
                             >
                               <Layers3 className="h-3 w-3 mr-1.5 transition-transform duration-200 group-hover:scale-110" />
-                              Categories
+                              <span className="hidden sm:inline">Categories</span>
                             </ToggleGroupItem>
                           </ToggleGroup>
                         </motion.div>
@@ -329,7 +330,7 @@ export function TaskManager() {
                             variant="outline"
                             size="sm"
                             onClick={() => setShowClearAllDialog(true)}
-                            className="text-xs"
+                            className="text-xs w-full sm:w-auto"
                           >
                             <Trash2 className="h-3 w-3 mr-1" />
                             Clear All
