@@ -1,0 +1,16 @@
+{
+  "name": "simplr-front-end",
+  "private": true,
+  "version": "0.0.0",
+  "scripts": {
+    "dev": "cd simplr-react && npm run dev",
+    "build": "cd simplr-react && npm run build",
+    "lint": "cd simplr-react && npm run lint",
+    "preview": "cd simplr-react && npm run preview"
+  },
+  "dependencies": {
+    "@radix-ui/react-label": "^2.1.7",
+    "@radix-ui/react-switch": "^1.2.6",
+    "@radix-ui/react-tabs": "^1.1.13"
+  }
+}
