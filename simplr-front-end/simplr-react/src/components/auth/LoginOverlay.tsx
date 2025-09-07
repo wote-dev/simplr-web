@@ -55,9 +55,9 @@ export function LoginOverlay({ className }: LoginOverlayProps) {
     )}>
       <Card className="w-full max-w-md mx-4 shadow-2xl border-2">
         <CardHeader className="text-center space-y-4">
-          <div className="mx-auto w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center">
+          <div className="mx-auto w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
             <img 
-              src="/src/assets/iconik.png" 
+              src="/favicon4.png" 
               alt="Simplr" 
               className="w-10 h-10 object-contain"
               onError={(e) => {
