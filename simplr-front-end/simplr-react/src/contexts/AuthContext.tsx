@@ -18,15 +18,37 @@ export function AuthProvider({ children }: AuthProviderProps) {
     error: null,
   });
 
-  // Initialize authentication state from Supabase
+  // Initialize authentication state from Supabase or localStorage
   useEffect(() => {
     const initializeAuth = async () => {
       try {
-        // Get initial session
+        // Get initial session from Supabase
         const { data: { session }, error } = await supabase.auth.getSession();
         
         if (error) {
           console.error('Error getting session:', error);
+          // Check for local guest user as fallback
+          const localGuestUser = localStorage.getItem('simplr_guest_user');
+          const localAuthType = localStorage.getItem('simplr_auth_type');
+          
+          if (localGuestUser && localAuthType === 'guest') {
+            try {
+              const guestUser = JSON.parse(localGuestUser) as User;
+              setAuthState({
+                user: guestUser,
+                authType: 'guest',
+                isAuthenticated: true,
+                isLoading: false,
+                error: null,
+              });
+              return;
+            } catch (parseError) {
+              console.error('Failed to parse local guest user:', parseError);
+              localStorage.removeItem('simplr_guest_user');
+              localStorage.removeItem('simplr_auth_type');
+            }
+          }
+          
           setAuthState(prev => ({
             ...prev,
             isLoading: false,
@@ -47,6 +69,28 @@ export function AuthProvider({ children }: AuthProviderProps) {
             error: null,
           });
         } else {
+          // Check for local guest user when no Supabase session
+          const localGuestUser = localStorage.getItem('simplr_guest_user');
+          const localAuthType = localStorage.getItem('simplr_auth_type');
+          
+          if (localGuestUser && localAuthType === 'guest') {
+            try {
+              const guestUser = JSON.parse(localGuestUser) as User;
+              setAuthState({
+                user: guestUser,
+                authType: 'guest',
+                isAuthenticated: true,
+                isLoading: false,
+                error: null,
+              });
+              return;
+            } catch (parseError) {
+              console.error('Failed to parse local guest user:', parseError);
+              localStorage.removeItem('simplr_guest_user');
+              localStorage.removeItem('simplr_auth_type');
+            }
+          }
+          
           setAuthState(prev => ({ ...prev, isLoading: false }));
         }
       } catch (error) {
@@ -173,21 +217,68 @@ export function AuthProvider({ children }: AuthProviderProps) {
     setAuthState(prev => ({ ...prev, isLoading: true, error: null }));
     
     try {
-      // For guest mode, we'll use anonymous sign-in with Supabase
+      // First try Supabase anonymous authentication
       const { error } = await supabase.auth.signInAnonymously();
 
       if (error) {
-        throw error;
+        // If Supabase anonymous auth fails, fall back to local guest mode
+        console.warn('Supabase anonymous auth not available, using local guest mode:', error.message);
+        
+        // Create a local guest user
+        const guestUser: User = {
+          id: `guest_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+          name: 'Guest User',
+          email: undefined,
+          avatar: undefined,
+        };
+
+        // Store guest user in localStorage for persistence
+        localStorage.setItem('simplr_guest_user', JSON.stringify(guestUser));
+        localStorage.setItem('simplr_auth_type', 'guest');
+        
+        // Update auth state directly for local guest mode
+        setAuthState({
+          user: guestUser,
+          authType: 'guest',
+          isAuthenticated: true,
+          isLoading: false,
+          error: null,
+        });
+        
+        return;
       }
 
-      // The auth state will be updated by the onAuthStateChange listener
+      // The auth state will be updated by the onAuthStateChange listener for Supabase anonymous users
     } catch (error) {
       console.error('Guest sign-in failed:', error);
-      setAuthState(prev => ({
-        ...prev,
-        isLoading: false,
-        error: 'Failed to sign in as guest',
-      }));
+      
+      // Even if there's an unexpected error, try local guest mode as final fallback
+      try {
+        const guestUser: User = {
+          id: `guest_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+          name: 'Guest User',
+          email: undefined,
+          avatar: undefined,
+        };
+
+        localStorage.setItem('simplr_guest_user', JSON.stringify(guestUser));
+        localStorage.setItem('simplr_auth_type', 'guest');
+        
+        setAuthState({
+          user: guestUser,
+          authType: 'guest',
+          isAuthenticated: true,
+          isLoading: false,
+          error: null,
+        });
+      } catch (fallbackError) {
+        console.error('Local guest mode also failed:', fallbackError);
+        setAuthState(prev => ({
+          ...prev,
+          isLoading: false,
+          error: 'Failed to sign in as guest',
+        }));
+      }
     }
   };
 
@@ -195,6 +286,25 @@ export function AuthProvider({ children }: AuthProviderProps) {
     setAuthState(prev => ({ ...prev, isLoading: true, error: null }));
     
     try {
+      // Check if this is a local guest user
+      const localAuthType = localStorage.getItem('simplr_auth_type');
+      
+      if (localAuthType === 'guest') {
+        // For local guest users, just clear localStorage and update state
+        localStorage.removeItem('simplr_guest_user');
+        localStorage.removeItem('simplr_auth_type');
+        
+        setAuthState({
+          user: null,
+          authType: null,
+          isAuthenticated: false,
+          isLoading: false,
+          error: null,
+        });
+        return;
+      }
+      
+      // For Supabase users, sign out normally
       const { error } = await supabase.auth.signOut();
       
       if (error) {
