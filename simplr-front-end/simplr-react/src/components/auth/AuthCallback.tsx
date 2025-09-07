@@ -11,7 +11,7 @@ export function AuthCallback({ onComplete }: AuthCallbackProps) {
     const handleAuthCallback = async () => {
       try {
         // Handle the auth callback by getting the session
-        const { data, error } = await supabase.auth.getSession();
+        const { error } = await supabase.auth.getSession();
         
         if (error) {
           console.error('Auth callback error:', error);

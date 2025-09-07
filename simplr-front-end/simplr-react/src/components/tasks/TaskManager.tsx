@@ -23,7 +23,7 @@ import { TaskModal } from '@/components/tasks/TaskModal';
 import { TaskCard } from '@/components/tasks/TaskCard';
 import { CategoryGroupedTasks } from '@/components/tasks/CategoryGroupedTasks';
 import { SettingsModal } from '@/components/settings/SettingsModal';
-import { Plus, User, CheckCircle, Clock, Calendar, Loader2, Home, Trash2, Grid3X3, Layers3 } from 'lucide-react';
+import { Plus, CheckCircle, Clock, Calendar, Loader2, Home, Trash2, Grid3X3, Layers3 } from 'lucide-react';
 import { AnimatedThemeToggler } from '@/components/magicui/animated-theme-toggler';
 import { KeyboardHint } from '@/components/ui/keyboard-hint';
 import type { TaskView, Task } from '@/types';

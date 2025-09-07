@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import type { AuthState, AuthType, User, UseAuthReturn } from '@/types';
 import { supabase } from '@/lib/supabase';
-import type { User as SupabaseUser, Session } from '@supabase/supabase-js';
+import type { User as SupabaseUser } from '@supabase/supabase-js';
 
 const AuthContext = createContext<UseAuthReturn | undefined>(undefined);
 
@@ -119,7 +119,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     setAuthState(prev => ({ ...prev, isLoading: true, error: null }));
     
     try {
-      const { data, error } = await supabase.auth.signInWithOAuth({
+      const { error } = await supabase.auth.signInWithOAuth({
         provider: 'apple',
         options: {
           redirectTo: `${window.location.origin}/auth/callback`,
@@ -146,7 +146,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     setAuthState(prev => ({ ...prev, isLoading: true, error: null }));
     
     try {
-      const { data, error } = await supabase.auth.signInWithOAuth({
+      const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
           redirectTo: `${window.location.origin}/auth/callback`,
@@ -174,7 +174,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     
     try {
       // For guest mode, we'll use anonymous sign-in with Supabase
-      const { data, error } = await supabase.auth.signInAnonymously();
+      const { error } = await supabase.auth.signInAnonymously();
 
       if (error) {
         throw error;
