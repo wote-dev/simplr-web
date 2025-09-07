@@ -2,7 +2,9 @@ import { useState, useEffect, useCallback } from 'react';
 import { useTasks } from '@/hooks/useTasks';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useToast } from '@/contexts/ToastContext';
+import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -40,6 +42,7 @@ export function TaskManager() {
   } = useTasks();
   const { resolvedTheme } = useTheme();
   const { showToast } = useToast();
+  const { user } = useAuth();
 
   const [currentView, setCurrentView] = useState<TaskView>('today');
   const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
@@ -216,9 +219,20 @@ export function TaskManager() {
               variant="ghost"
               size="icon"
               onClick={handleOpenSettings}
-              className="h-9 w-9"
+              className="h-9 w-9 p-0 rounded-full overflow-hidden hover:ring-2 hover:ring-primary/20 transition-all duration-200"
             >
-              <User className="h-5 w-5" />
+              <Avatar className="h-8 w-8">
+                {user?.avatar && (
+                  <AvatarImage 
+                    src={user.avatar} 
+                    alt={user.name || 'User'}
+                    className="object-cover"
+                  />
+                )}
+                <AvatarFallback className="bg-gradient-to-br from-primary/20 to-primary/10 text-primary text-sm font-semibold">
+                  {(user?.name || 'U').charAt(0).toUpperCase()}
+                </AvatarFallback>
+              </Avatar>
             </Button>
           </div>
         </div>

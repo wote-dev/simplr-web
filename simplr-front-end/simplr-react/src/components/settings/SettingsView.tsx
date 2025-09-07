@@ -3,7 +3,7 @@ import { useTheme } from '@/contexts/ThemeContext';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { User, Moon, Sun, Monitor, LogOut, Trash2, Download, Upload, Shield, Database, Palette } from 'lucide-react';
 
 export function SettingsView() {
@@ -110,6 +110,13 @@ export function SettingsView() {
               <CardContent className="p-6">
                 <div className="flex items-center space-x-4">
                   <Avatar className="h-14 w-14 border-2 border-border">
+                    {user?.avatar && (
+                      <AvatarImage 
+                        src={user.avatar} 
+                        alt={user.name || 'User'}
+                        className="object-cover"
+                      />
+                    )}
                     <AvatarFallback className="bg-gradient-to-br from-primary/20 to-primary/10 text-primary text-lg font-semibold">
                       {(user?.name || 'G').charAt(0).toUpperCase()}
                     </AvatarFallback>
