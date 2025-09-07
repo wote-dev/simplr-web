@@ -1,4 +1,3 @@
-import React from 'react';
 import { motion } from 'framer-motion';
 import { TaskCard } from './TaskCard';
 import { taskCategories, getTasksByCategory } from '@/hooks/useTasks';

@@ -1,10 +1,8 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useTasks } from '@/hooks/useTasks';
-import { useAuth } from '@/contexts/AuthContext';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useToast } from '@/contexts/ToastContext';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -40,14 +38,12 @@ export function TaskManager() {
     toggleTaskComplete,
     updateChecklistItem 
   } = useTasks();
-  const { user } = useAuth();
   const { resolvedTheme } = useTheme();
   const { showToast } = useToast();
 
   const [currentView, setCurrentView] = useState<TaskView>('today');
   const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | undefined>(undefined);
-  const [isViewTransitioning, setIsViewTransitioning] = useState(false);
   const [showClearAllDialog, setShowClearAllDialog] = useState(false);
   const [groupByCategory, setGroupByCategory] = useState(false);
   const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
@@ -77,12 +73,9 @@ export function TaskManager() {
   const handleViewChange = (view: TaskView) => {
     if (view === currentView) return;
     
-    setIsViewTransitioning(true);
-    
     // Small delay to allow exit animation to start
     setTimeout(() => {
       setCurrentView(view);
-      setTimeout(() => setIsViewTransitioning(false), 100);
     }, 50);
   };
 
@@ -490,7 +483,7 @@ export function TaskManager() {
         onClose={() => setIsSettingsModalOpen(false)} 
       />
 
-      <AlertDialog open={showClearAllDialog} onOpenChange={setShowClearAllDialog}>
+      <AlertDialog open={showClearAllDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Clear All Completed Tasks</AlertDialogTitle>

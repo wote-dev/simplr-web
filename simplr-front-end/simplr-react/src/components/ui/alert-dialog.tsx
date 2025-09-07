@@ -1,10 +1,8 @@
 import * as React from "react"
 import { Button } from "@/components/ui/button"
-import { X } from "lucide-react"
 
 interface AlertDialogProps {
   open: boolean
-  onOpenChange: (open: boolean) => void
   children: React.ReactNode
 }
 
@@ -40,7 +38,7 @@ interface AlertDialogCancelProps {
   children: React.ReactNode
 }
 
-const AlertDialog = ({ open, onOpenChange, children }: AlertDialogProps) => {
+const AlertDialog = ({ open, children }: AlertDialogProps) => {
   if (!open) return null
 
   return (

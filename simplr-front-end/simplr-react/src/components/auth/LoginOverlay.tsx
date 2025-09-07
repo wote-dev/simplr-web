@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Loader2, Apple, User } from 'lucide-react';
+import { Loader2, User } from 'lucide-react';
 import GoogleLogo from '../../assets/google-logo.svg';
 import AppleLogo from '../../assets/apple-logo.svg';
 import { useAuth } from '@/contexts/AuthContext';

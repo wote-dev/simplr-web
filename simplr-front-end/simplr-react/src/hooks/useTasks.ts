@@ -49,7 +49,7 @@ export function useTasks(): UseTasksReturn {
       }
     }
   );
-  const [isPending, startTransition] = useTransition();
+  const [, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const [currentTime, setCurrentTime] = useState(() => Date.now());
   

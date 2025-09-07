@@ -1,8 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { DatePicker } from '@/components/ui/date-picker';
-import { X, Plus, Trash2, Calendar } from 'lucide-react';
+import { X, Plus, Trash2 } from 'lucide-react';
 import { useToast } from '@/contexts/ToastContext';
 import type { Task, TaskCategory, ChecklistItem } from '@/types';
 import { taskCategories } from '@/hooks/useTasks';

@@ -1,11 +1,10 @@
-import React from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTheme } from '@/contexts/ThemeContext';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { User, Moon, Sun, Monitor, LogOut, Trash2, Download, Upload, Settings, Shield, Database, Palette } from 'lucide-react';
+import { User, Moon, Sun, Monitor, LogOut, Trash2, Download, Upload, Shield, Database, Palette } from 'lucide-react';
 
 export function SettingsView() {
   const { user, signOut } = useAuth();
