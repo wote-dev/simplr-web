@@ -265,29 +265,7 @@ export function SettingsView() {
             <CardContent className="pt-0">
               <div className="space-y-4">
                 <div className="text-center space-y-2">
-                  <h3 className="font-semibold text-lg">Simplr</h3>
-                  <div className="space-y-1">
-                    <div className="inline-flex items-center px-2 py-1 rounded-full bg-primary/10 text-primary text-xs font-medium">
-                      v2.0.0
-                    </div>
-                  </div>
-                </div>
-                
-                <Separator />
-                
-                <div className="space-y-3 text-sm">
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Framework</span>
-                    <span className="font-medium">React 19</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Language</span>
-                    <span className="font-medium">TypeScript</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Styling</span>
-                    <span className="font-medium">Tailwind CSS</span>
-                  </div>
+                  <h3 className="font-semibold text-lg">Simplr Web v1.0 (Alpha)</h3>
                 </div>
                 
                 <Separator />
