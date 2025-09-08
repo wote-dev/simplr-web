@@ -61,6 +61,9 @@ export function useTasks(): UseTasksReturn {
   
   // Determine if we should use Supabase (authenticated non-guest users)
   const useSupabase = isAuthenticated && authType !== 'guest' && user?.id;
+  
+  // Debug authentication state
+  console.log('Auth state:', { isAuthenticated, authType, userId: user?.id, useSupabase });
 
   // Update current time periodically to handle completed task filtering
   useEffect(() => {
