@@ -48,7 +48,7 @@ function mapTaskToDatabaseTask(task: Omit<Task, 'id' | 'createdAt' | 'updatedAt'
     category: task.category,
     completed: task.completed,
     checklist: task.checklist,
-    due_date: task.dueDate,
+    due_date: task.dueDate && task.dueDate.trim() !== '' ? task.dueDate : null,
   };
 }
 
@@ -168,7 +168,7 @@ export class DatabaseService {
           ...(updates.category && { category: updates.category }),
           ...(updates.completed !== undefined && { completed: updates.completed }),
           ...(updates.checklist !== undefined && { checklist: updates.checklist }),
-          ...(updates.dueDate !== undefined && { due_date: updates.dueDate }),
+          ...(updates.dueDate !== undefined && { due_date: updates.dueDate && updates.dueDate.trim() !== '' ? updates.dueDate : null }),
         })
         .eq('id', taskId)
         .eq('user_id', userId)
