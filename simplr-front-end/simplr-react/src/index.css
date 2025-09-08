@@ -156,32 +156,32 @@
 
   /* Tab view transition animations */
   .tab-transition-enter {
-    animation: tabSlideIn 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+    animation: tabSlideIn 0.15s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
   }
 
   .tab-transition-exit {
-    animation: tabSlideOut 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+    animation: tabSlideOut 0.15s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
   }
 
   @keyframes tabSlideIn {
     from {
       opacity: 0;
-      transform: translateX(20px) scale(0.95);
+      transform: translateY(8px);
     }
     to {
       opacity: 1;
-      transform: translateX(0) scale(1);
+      transform: translateY(0);
     }
   }
 
   @keyframes tabSlideOut {
     from {
       opacity: 1;
-      transform: translateX(0) scale(1);
+      transform: translateY(0);
     }
     to {
       opacity: 0;
-      transform: translateX(-20px) scale(0.95);
+      transform: translateY(-8px);
     }
   }
 
@@ -222,13 +222,13 @@
 
   /* Smooth content transitions */
   .content-fade-in {
-    animation: contentFadeIn 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+    animation: contentFadeIn 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
   }
 
   @keyframes contentFadeIn {
     from {
       opacity: 0;
-      transform: translateY(10px);
+      transform: translateY(6px);
     }
     to {
       opacity: 1;
@@ -256,7 +256,7 @@
       hsl(var(--background)) 100%
     );
     opacity: 0;
-    transition: opacity 0.3s ease;
+    transition: opacity 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
     pointer-events: none;
   }
 
@@ -280,7 +280,7 @@
     background: hsl(var(--primary) / 0.1);
     border-radius: inherit;
     opacity: 0;
-    transition: opacity 0.2s ease;
+    transition: opacity 0.15s cubic-bezier(0.25, 0.46, 0.45, 0.94);
   }
 
   .toggle-item-smooth:hover::before {

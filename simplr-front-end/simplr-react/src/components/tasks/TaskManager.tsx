@@ -243,38 +243,37 @@ export function TaskManager() {
         <AnimatePresence mode="wait">
           <motion.div
             key={currentView}
-            initial={{ opacity: 0, x: 20, scale: 0.95 }}
-            animate={{ opacity: 1, x: 0, scale: 1 }}
-            exit={{ opacity: 0, x: -20, scale: 0.95 }}
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
             transition={{ 
-              duration: 0.3, 
-              ease: [0.4, 0, 0.2, 1],
-              scale: { duration: 0.2 }
+              duration: 0.15, 
+              ease: [0.25, 0.46, 0.45, 0.94]
             }}
             className="flex-1 flex flex-col"
           >
             {(isLoading || viewTasks.length > 0) && (
               <motion.div 
                 className="mb-6"
-                initial={{ opacity: 0, y: 10 }}
+                initial={{ opacity: 0, y: 6 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.1, duration: 0.3 }}
+                transition={{ delay: 0.05, duration: 0.2, ease: [0.25, 0.46, 0.45, 0.94] }}
               >
                 <div className="flex flex-col space-y-4 mb-4 sm:flex-row sm:items-center sm:justify-between sm:space-y-0">
                   <div>
                     <motion.h2 
                       className="text-2xl font-bold"
-                      initial={{ opacity: 0, y: 5 }}
+                      initial={{ opacity: 0, y: 3 }}
                       animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: 0.15, duration: 0.3 }}
+                      transition={{ delay: 0.08, duration: 0.18, ease: [0.25, 0.46, 0.45, 0.94] }}
                     >
                       {getViewTitle()}
                     </motion.h2>
                     <motion.p 
                       className="text-muted-foreground text-sm sm:text-base"
-                      initial={{ opacity: 0, y: 5 }}
+                      initial={{ opacity: 0, y: 3 }}
                       animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: 0.2, duration: 0.3 }}
+                      transition={{ delay: 0.1, duration: 0.18, ease: [0.25, 0.46, 0.45, 0.94] }}
                     >
                       {currentView === 'today' && 'Focus on what matters today'}
                       {currentView === 'upcoming' && 'Plan ahead and stay organized'}
@@ -285,9 +284,9 @@ export function TaskManager() {
                   {stats && (
                     <motion.div 
                       className="flex flex-col space-y-3 sm:flex-row sm:items-center sm:space-y-0 sm:space-x-4 text-sm"
-                      initial={{ opacity: 0, x: 10 }}
+                      initial={{ opacity: 0, x: 6 }}
                       animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: 0.25, duration: 0.3 }}
+                      transition={{ delay: 0.12, duration: 0.18, ease: [0.25, 0.46, 0.45, 0.94] }}
                     >
                       <div className="flex items-center justify-between sm:justify-start sm:space-x-4">
                         <div className="flex items-center space-x-1 text-muted-foreground">
@@ -306,9 +305,9 @@ export function TaskManager() {
                       
                       <div className="flex flex-col space-y-2 sm:flex-row sm:items-center sm:space-y-0 sm:space-x-2">
                         <motion.div
-                          initial={{ opacity: 0, scale: 0.95 }}
+                          initial={{ opacity: 0, scale: 0.98 }}
                           animate={{ opacity: 1, scale: 1 }}
-                          transition={{ delay: 0.3, duration: 0.2 }}
+                          transition={{ delay: 0.15, duration: 0.15, ease: [0.25, 0.46, 0.45, 0.94] }}
                           className="w-full sm:w-auto"
                         >
                           <ToggleGroup
@@ -402,13 +401,13 @@ export function TaskManager() {
                   {groupByCategory ? (
                     <motion.div
                       key="categories"
-                      initial={{ opacity: 0, y: 10, scale: 0.98 }}
-                      animate={{ opacity: 1, y: 0, scale: 1 }}
-                      exit={{ opacity: 0, y: -10, scale: 0.98 }}
+                      initial={{ opacity: 0, y: 8 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -8 }}
                       transition={{ 
-                        duration: 0.25, 
-                        ease: [0.4, 0, 0.2, 1],
-                        delay: 0.1
+                        duration: 0.16, 
+                        ease: [0.25, 0.46, 0.45, 0.94],
+                        delay: 0.05
                       }}
                     >
                       <CategoryGroupedTasks
@@ -423,24 +422,24 @@ export function TaskManager() {
                     <motion.div 
                       key="grid"
                       className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-2 md:gap-3"
-                      initial={{ opacity: 0, y: 10, scale: 0.98 }}
-                      animate={{ opacity: 1, y: 0, scale: 1 }}
-                      exit={{ opacity: 0, y: -10, scale: 0.98 }}
+                      initial={{ opacity: 0, y: 8 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -8 }}
                       transition={{ 
-                        duration: 0.25, 
-                        ease: [0.4, 0, 0.2, 1],
-                        delay: 0.1
+                        duration: 0.16, 
+                        ease: [0.25, 0.46, 0.45, 0.94],
+                        delay: 0.05
                       }}
                     >
                       {viewTasks.map((task, index) => (
                         <motion.div
                           key={task.id}
-                          initial={{ opacity: 0, y: 20 }}
+                          initial={{ opacity: 0, y: 8 }}
                           animate={{ opacity: 1, y: 0 }}
                           transition={{ 
-                            delay: 0.2 + (index * 0.03), 
-                            duration: 0.3,
-                            ease: [0.4, 0, 0.2, 1]
+                            delay: 0.08 + (index * 0.02), 
+                            duration: 0.18,
+                            ease: [0.25, 0.46, 0.45, 0.94]
                           }}
                         >
                           <TaskCard
