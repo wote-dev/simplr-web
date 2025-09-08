@@ -3,7 +3,6 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Loader2, User } from 'lucide-react';
 import GoogleLogo from '../../assets/google-logo.svg';
-import AppleLogo from '../../assets/apple-logo.svg';
 import { useAuth } from '@/contexts/AuthContext';
 import { cn } from '@/lib/utils';
 
@@ -12,19 +11,8 @@ interface LoginOverlayProps {
 }
 
 export function LoginOverlay({ className }: LoginOverlayProps) {
-  const { signInWithApple, signInWithGoogle, signInAsGuest, isLoading, error } = useAuth();
-  const [loadingType, setLoadingType] = useState<'apple' | 'google' | 'guest' | null>(null);
-
-  const handleAppleSignIn = async () => {
-    try {
-      setLoadingType('apple');
-      await signInWithApple();
-    } catch (err) {
-      console.error('Apple Sign-In failed:', err);
-    } finally {
-      setLoadingType(null);
-    }
-  };
+  const { signInWithGoogle, signInAsGuest, isLoading, error } = useAuth();
+  const [loadingType, setLoadingType] = useState<'google' | 'guest' | null>(null);
 
   const handleGoogleSignIn = async () => {
     try {
@@ -89,20 +77,6 @@ export function LoginOverlay({ className }: LoginOverlayProps) {
           )}
           
           <div className="space-y-3">
-            <Button
-              onClick={handleAppleSignIn}
-              disabled={isLoading}
-              className="w-full h-12 bg-black hover:bg-gray-800 dark:bg-white dark:hover:bg-gray-100 text-white dark:text-black font-medium transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] border-2 border-transparent dark:border-gray-200"
-              size="lg"
-            >
-              {loadingType === 'apple' ? (
-                <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-              ) : (
-                <img src={AppleLogo} alt="Apple" className="mr-2 h-5 w-5 flex-shrink-0" />
-              )}
-              Continue with Apple
-            </Button>
-            
             <Button
               onClick={handleGoogleSignIn}
               disabled={isLoading}

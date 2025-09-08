@@ -152,37 +152,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
     switch (provider) {
       case 'google':
         return 'google';
-      case 'apple':
-        return 'apple';
       default:
         return 'guest';
-    }
-  };
-
-  const signInWithApple = async (): Promise<void> => {
-    setAuthState(prev => ({ ...prev, isLoading: true, error: null }));
-    
-    try {
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: 'apple',
-        options: {
-          redirectTo: window.location.origin,
-        },
-      });
-
-      if (error) {
-        throw error;
-      }
-
-      // The auth state will be updated by the onAuthStateChange listener
-      // when the user returns from the OAuth flow
-    } catch (error) {
-      console.error('Apple Sign-In failed:', error);
-      setAuthState(prev => ({
-        ...prev,
-        isLoading: false,
-        error: error instanceof Error ? error.message : 'Apple Sign-In failed',
-      }));
     }
   };
 
@@ -324,7 +295,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   const value: UseAuthReturn = {
     ...authState,
-    signInWithApple,
     signInWithGoogle,
     signInAsGuest,
     signOut,

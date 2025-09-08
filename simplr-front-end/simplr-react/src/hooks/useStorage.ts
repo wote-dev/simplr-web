@@ -134,7 +134,6 @@ export const storageKeys = {
   THEME: 'theme',
   USER: 'user',
   AUTH_TYPE: 'authType',
-  APPLE_AUTH_DATA: 'appleAuthData',
   BACKUP_PREFIX: 'simplr_backup_',
 } as const;
 

@@ -273,39 +273,35 @@ export function SettingsView() {
                 <div className="space-y-6">
                   {/* Sync Status */}
                   {isSupabaseEnabled && (
-                    <div className="p-4 bg-accent/20 rounded-lg border border-accent/30">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center space-x-3">
-                          <div className="p-2 bg-primary/10 rounded-lg">
-                            <Cloud className="h-4 w-4 text-primary" />
-                          </div>
-                          <div>
-                            <h4 className="text-sm font-medium">Cloud Sync Enabled</h4>
-                            <p className="text-xs text-muted-foreground">
-                              Your tasks are automatically synced to Supabase
-                            </p>
-                          </div>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-3">
+                        <div className="p-2 bg-primary/10 rounded-lg">
+                          <Cloud className="h-4 w-4 text-primary" />
                         </div>
-                        <div className="flex items-center space-x-2">
-                          <div className="h-2 w-2 bg-green-500 rounded-full"></div>
-                          <span className="text-xs text-muted-foreground">Connected</span>
+                        <div>
+                          <h4 className="text-sm font-medium">Cloud Sync Enabled</h4>
+                          <p className="text-xs text-muted-foreground">
+                            Your tasks are automatically synced to Supabase
+                          </p>
                         </div>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <div className="h-2 w-2 bg-green-500 rounded-full"></div>
+                        <span className="text-xs text-muted-foreground">Connected</span>
                       </div>
                     </div>
                   )}
                   
                   {!isSupabaseEnabled && (
-                    <div className="p-4 bg-muted/50 rounded-lg border border-muted">
-                      <div className="flex items-center space-x-3">
-                        <div className="p-2 bg-muted rounded-lg">
-                          <CloudOff className="h-4 w-4 text-muted-foreground" />
-                        </div>
-                        <div>
-                          <h4 className="text-sm font-medium">Local Storage Only</h4>
-                          <p className="text-xs text-muted-foreground">
-                            Sign in with Google or Apple to enable cloud sync
-                          </p>
-                        </div>
+                    <div className="flex items-center space-x-3">
+                      <div className="p-2 bg-primary/10 rounded-lg">
+                        <CloudOff className="h-4 w-4 text-muted-foreground" />
+                      </div>
+                      <div>
+                        <h4 className="text-sm font-medium">Local Storage Only</h4>
+                        <p className="text-xs text-muted-foreground">
+                          Sign in with Google to enable cloud sync
+                        </p>
                       </div>
                     </div>
                   )}
