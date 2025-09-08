@@ -18,7 +18,7 @@ export function PrivacyPolicyPage() {
                 variant="ghost"
                 size="sm"
                 onClick={() => navigate(-1)}
-                className="text-muted-foreground hover:text-foreground"
+                className="text-muted-foreground hover:text-primary hover:bg-primary/10"
               >
                 <ArrowLeft className="h-4 w-4 mr-2" />
                 Back
@@ -46,6 +46,63 @@ export function PrivacyPolicyPage() {
 
         <Separator />
 
+        {/* Data Storage Options */}
+        <Card className="border border-border/50 shadow-sm bg-card/50 backdrop-blur-sm">
+          <CardHeader className="pb-4">
+            <CardTitle className="text-xl flex items-center space-x-2">
+              <Database className="h-6 w-6 text-primary" />
+              <span>How Your Data is Stored</span>
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <div className="grid md:grid-cols-2 gap-6">
+              <div className="space-y-3">
+                <h4 className="text-lg font-semibold text-green-600">Guest Users</h4>
+                <ul className="text-muted-foreground space-y-2 ml-4">
+                  <li className="flex items-start space-x-2">
+                    <span className="text-green-600 mt-1">•</span>
+                    <span>All data stored locally on your device</span>
+                  </li>
+                  <li className="flex items-start space-x-2">
+                    <span className="text-green-600 mt-1">•</span>
+                    <span>No data sent to our servers</span>
+                  </li>
+                  <li className="flex items-start space-x-2">
+                    <span className="text-green-600 mt-1">•</span>
+                    <span>Complete privacy and offline functionality</span>
+                  </li>
+                  <li className="flex items-start space-x-2">
+                    <span className="text-green-600 mt-1">•</span>
+                    <span>Data stays with you, even if you clear browser data</span>
+                  </li>
+                </ul>
+              </div>
+              
+              <div className="space-y-3">
+                <h4 className="text-lg font-semibold text-blue-600">Authenticated Users</h4>
+                <ul className="text-muted-foreground space-y-2 ml-4">
+                  <li className="flex items-start space-x-2">
+                    <span className="text-blue-600 mt-1">•</span>
+                    <span>Data synced to our secure database</span>
+                  </li>
+                  <li className="flex items-start space-x-2">
+                    <span className="text-blue-600 mt-1">•</span>
+                    <span>Access your tasks from any device</span>
+                  </li>
+                  <li className="flex items-start space-x-2">
+                    <span className="text-blue-600 mt-1">•</span>
+                    <span>Automatic cloud backup and sync</span>
+                  </li>
+                  <li className="flex items-start space-x-2">
+                    <span className="text-blue-600 mt-1">•</span>
+                    <span>Enterprise-grade security with Supabase</span>
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
         {/* Data Storage */}
         <Card className="border border-border/50 shadow-sm bg-card/50 backdrop-blur-sm">
           <CardHeader className="pb-4">
@@ -58,11 +115,12 @@ export function PrivacyPolicyPage() {
             <div className="space-y-3">
               <h4 className="text-lg font-semibold flex items-center space-x-2">
                 <Server className="h-5 w-5 text-primary" />
-                <span>Supabase Infrastructure</span>
+                <span>Supabase Infrastructure (Authenticated Users Only)</span>
               </h4>
               <p className="text-muted-foreground leading-relaxed">
-                Your tasks are securely stored using Supabase, a trusted open-source backend-as-a-service platform.
+                For authenticated users, tasks are securely stored using Supabase, a trusted open-source backend-as-a-service platform.
                 Supabase provides enterprise-grade security with PostgreSQL databases hosted on AWS infrastructure.
+                Guest users' data never leaves their device.
               </p>
             </div>
             

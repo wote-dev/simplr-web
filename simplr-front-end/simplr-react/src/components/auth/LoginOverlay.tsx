@@ -5,6 +5,7 @@ import { Loader2, User } from 'lucide-react';
 import GoogleLogo from '../../assets/google-logo.svg';
 import { useAuth } from '@/contexts/AuthContext';
 import { cn } from '@/lib/utils';
+import { Link } from 'react-router-dom';
 
 interface LoginOverlayProps {
   className?: string;
@@ -118,10 +119,18 @@ export function LoginOverlay({ className }: LoginOverlayProps) {
             </Button>
           </div>
           
-          <div className="text-center">
+          <div className="text-center space-y-2">
             <p className="text-xs text-muted-foreground leading-relaxed">
-              By continuing, you agree to our terms of service and privacy policy.
-              Your data is stored locally on your device.
+              By continuing, you agree to our{' '}
+              <Link to="/privacy" className="text-primary hover:underline">
+                terms of service and privacy policy
+              </Link>
+              .
+            </p>
+            <p className="text-xs text-muted-foreground leading-relaxed">
+              Guest users: Data stored locally on your device.{' '}
+              <br className="hidden sm:inline" />
+              Authenticated users: Data synced to our secure database.
             </p>
           </div>
         </CardContent>

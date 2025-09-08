@@ -370,7 +370,7 @@ export function TaskManager() {
                   <p className="text-muted-foreground">Loading tasks...</p>
                 </div>
               ) : viewTasks.length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-12 px-4">
+                <div className="flex flex-col items-center justify-center min-h-[60vh] px-4">
                   <h3 className="text-base font-medium text-muted-foreground mb-2">
                     {currentView === 'completed' 
                       ? 'No completed tasks yet' 
