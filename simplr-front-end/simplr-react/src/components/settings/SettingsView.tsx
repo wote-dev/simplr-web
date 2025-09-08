@@ -10,6 +10,9 @@ import { User, Moon, Sun, Monitor, LogOut, Trash2, Download, Upload, Shield, Dat
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { cn } from '@/lib/utils';
+import { motion } from 'framer-motion';
+import { AccountSettings } from './AccountSettings';
+import type { Theme } from '@/types';
 
 type SettingsSection = 'account' | 'appearance' | 'data' | 'about';
 
@@ -173,7 +176,7 @@ export function SettingsView() {
     }
   };
 
-  const themeOptions = [
+  const themeOptions: { value: Theme; label: string; icon: any }[] = [
     { value: 'light', label: 'Light', icon: Sun },
     { value: 'dark', label: 'Dark', icon: Moon },
     { value: 'system', label: 'System', icon: Monitor },
@@ -192,423 +195,165 @@ export function SettingsView() {
                 key={item.id}
                 onClick={() => setActiveSection(item.id)}
                 className={cn(
-                  "group w-full flex items-center space-x-3 px-3 py-3 rounded-lg text-left transition-all duration-300 ease-out transform hover:scale-[1.02]",
+                  "group w-full flex items-center space-x-3 px-3 py-3 rounded-lg text-left transition-all duration-200 ease-in-out",
                   isActive
-                    ? "bg-primary/10 text-primary border border-primary/20 shadow-sm"
-                    : "text-muted-foreground hover:text-primary hover:bg-primary/10 hover:shadow-sm"
+                    ? "bg-primary text-primary-foreground"
+                    : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
                 )}
               >
-                <div className={cn(
-                  "p-1.5 rounded-md transition-all duration-200",
-                  isActive ? "bg-primary/20" : "group-hover:bg-primary/20"
-                )}>
-                  <Icon className="h-5 w-5 flex-shrink-0" />
+                <Icon className="w-5 h-5 text-current flex-shrink-0 transition-transform duration-300 ease-out group-hover:scale-105" />
+                <div className="flex-1">
+                  <p className="font-medium text-sm">{item.label}</p>
                 </div>
-                <div className="flex-1 min-w-0">
-                  <div className="text-sm font-medium truncate">{item.label}</div>
-                  <div className="text-xs opacity-70 group-hover:opacity-100 transition-opacity duration-300">{item.description}</div>
-                </div>
-                {isActive && (
-                  <div className="h-2 w-2 bg-primary rounded-full animate-pulse"></div>
-                )}
               </button>
             );
           })}
         </nav>
       </div>
-      
-      {/* Main Content */}
-        <div className="flex-1 p-8">
-          <div className="animate-in fade-in-50 duration-500 h-[600px]">
-            {activeSection === 'account' && (
-              <div className="animate-in slide-in-from-right-4 duration-300 h-[600px] overflow-y-auto space-y-6">
-              <div className="mb-6">
-                <h2 className="text-xl font-semibold text-foreground mb-2">Account</h2>
-                <p className="text-sm text-muted-foreground">Manage your profile and authentication settings</p>
-              </div>
-            <Card className="border-0 shadow-sm bg-card/50">
-              <CardContent className="p-6">
-                <div className="flex items-center space-x-4">
-                  <Avatar className="h-16 w-16 border-2 border-border/20">
-                    {user?.avatar && (
-                      <AvatarImage 
-                        src={user.avatar} 
-                        alt={user.name || 'User'}
-                        className="object-cover"
-                      />
-                    )}
-                    <AvatarFallback className="bg-gradient-to-br from-primary/20 to-primary/10 text-primary text-xl font-semibold">
-                      {(user?.name || 'G').charAt(0).toUpperCase()}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div className="flex-1">
-                    <h3 className="text-lg font-medium text-foreground">{user?.name || 'Guest User'}</h3>
-                    <p className="text-sm text-muted-foreground mb-2">
-                      {user?.email || 'No email provided'}
-                    </p>
-                    <div className="flex items-center">
-                      <div className="h-2 w-2 bg-green-500 rounded-full mr-2"></div>
-                      <span className="text-xs text-muted-foreground">Active</span>
-                    </div>
-                  </div>
-                  <Button 
-                    variant="outline" 
-                    size="sm"
-                    onClick={handleSignOut}
-                    className="hover:bg-destructive/10 hover:text-destructive hover:border-destructive/30 transition-colors"
-                  >
-                    <LogOut className="h-4 w-4 mr-2" />
-                    Sign Out
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-            
-            <Card className="border-0 shadow-sm bg-card/50">
-              <CardContent className="p-6">
-                <div className="space-y-4">
-                  <h4 className="text-sm font-medium">Account Statistics</h4>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="text-center p-4 bg-accent/10 dark:bg-accent/20 rounded-lg">
-                      <div className="text-2xl font-bold text-foreground">{taskCount}</div>
-                      <div className="text-xs text-muted-foreground">Total Tasks</div>
-                    </div>
-                    <div className="text-center p-4 bg-accent/10 dark:bg-accent/20 rounded-lg">
-                      <div className="text-2xl font-bold text-foreground">{completedTaskCount}</div>
-                      <div className="text-xs text-muted-foreground">Completed</div>
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        )}
-        
-        {activeSection === 'appearance' && (
-              <div className="animate-in slide-in-from-right-4 duration-300 h-[600px] overflow-y-auto space-y-6">
-            <div className="mb-6">
-              <h2 className="text-xl font-semibold text-foreground mb-2">Appearance</h2>
-              <p className="text-sm text-muted-foreground">Customize the look and feel of your workspace</p>
-            </div>
-            
-            <Card className="border-0 shadow-sm bg-card/50">
-              <CardContent className="p-6">
-                <div className="space-y-6">
-                  <div>
-                    <h4 className="text-sm font-medium mb-3">Theme</h4>
-                    <p className="text-xs text-muted-foreground mb-4">Choose how Simplr looks to you. Select a single theme, or sync with your system and automatically switch between day and night themes.</p>
-                    
-                    <div className="grid grid-cols-3 gap-3">
-                      <div 
-                        className={`relative cursor-pointer rounded-lg border-2 p-4 transition-all hover:border-primary/50 ${
-                          theme === 'light' ? 'border-primary bg-primary/5' : 'border-border/50'
-                        }`}
-                        onClick={() => setTheme('light')}
-                      >
-                        <div className="flex flex-col items-center space-y-2">
-                          <div className="p-2 rounded-full bg-primary/10">
-                            <Sun className="h-4 w-4 text-primary" />
-                          </div>
-                          <span className="text-sm font-medium">Light</span>
-                          {theme === 'light' && (
-                            <div className="absolute top-2 right-2">
-                              <div className="h-2 w-2 bg-primary rounded-full"></div>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                      
-                      <div 
-                        className={`relative cursor-pointer rounded-lg border-2 p-4 transition-all hover:border-primary/50 ${
-                          theme === 'dark' ? 'border-primary bg-primary/5' : 'border-border/50'
-                        }`}
-                        onClick={() => setTheme('dark')}
-                      >
-                        <div className="flex flex-col items-center space-y-2">
-                          <div className="p-2 rounded-full bg-primary/10">
-                            <Moon className="h-4 w-4 text-primary" />
-                          </div>
-                          <span className="text-sm font-medium">Dark</span>
-                          {theme === 'dark' && (
-                            <div className="absolute top-2 right-2">
-                              <div className="h-2 w-2 bg-primary rounded-full"></div>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                      
-                      <div 
-                        className={`relative cursor-pointer rounded-lg border-2 p-4 transition-all hover:border-primary/50 ${
-                          theme === 'system' ? 'border-primary bg-primary/5' : 'border-border/50'
-                        }`}
-                        onClick={() => setTheme('system')}
-                      >
-                        <div className="flex flex-col items-center space-y-2">
-                          <div className="p-2 rounded-full bg-primary/10">
-                            <Monitor className="h-4 w-4 text-primary" />
-                          </div>
-                          <span className="text-sm font-medium">System</span>
-                          {theme === 'system' && (
-                            <div className="absolute top-2 right-2">
-                              <div className="h-2 w-2 bg-primary rounded-full"></div>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        )}
-        
-        {activeSection === 'data' && (
-              <div className="animate-in slide-in-from-right-4 duration-300 h-[600px] overflow-y-auto space-y-6">
-             <div className="mb-6">
-               <h2 className="text-xl font-semibold text-foreground mb-2">Data Management</h2>
-               <p className="text-sm text-muted-foreground">Import, export, and manage your task data</p>
-             </div>
-            
-            <Card className="border-0 shadow-sm bg-card/50">
-              <CardContent className="p-6">
-                <div className="space-y-8">
-                  {/* Sync Status */}
-                  <div className="space-y-4">
-                    <div className="flex items-center space-x-2 mb-4">
-                      <Database className="h-4 w-4 text-primary" />
-                      <h4 className="text-sm font-medium">Sync Status</h4>
-                    </div>
-                    
-                    {isSupabaseEnabled ? (
-                      <div className="flex items-center justify-between p-4 bg-gradient-to-r from-green-50/50 to-emerald-50/50 dark:from-green-900/20 dark:to-emerald-900/20 rounded-lg border border-green-200/30 dark:border-green-800/30">
-                        <div className="flex items-center space-x-3">
-                          <div className="p-2 bg-green-100 dark:bg-green-900/50 rounded-lg">
-                            <Cloud className="h-4 w-4 text-green-600 dark:text-green-400" />
-                          </div>
-                          <div>
-                            <h5 className="text-sm font-medium text-green-800 dark:text-green-200">Cloud Sync Enabled</h5>
-                            <p className="text-xs text-green-600 dark:text-green-400">
-                              Your tasks are automatically synced to Supabase
-                            </p>
-                          </div>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <div className="h-2 w-2 bg-green-500 rounded-full animate-pulse"></div>
-                          <span className="text-xs text-green-600 dark:text-green-400 font-medium">Connected</span>
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="flex items-center justify-between p-4 bg-gradient-to-r from-orange-50/50 to-amber-50/50 dark:from-orange-900/20 dark:to-amber-900/20 rounded-lg border border-orange-200/30 dark:border-orange-800/30">
-                        <div className="flex items-center space-x-3">
-                          <div className="p-2 bg-orange-100 dark:bg-orange-900/50 rounded-lg">
-                            <CloudOff className="h-4 w-4 text-orange-600 dark:text-orange-400" />
-                          </div>
-                          <div>
-                            <h5 className="text-sm font-medium text-orange-800 dark:text-orange-200">Local Storage Only</h5>
-                            <p className="text-xs text-orange-600 dark:text-orange-400">
-                              Sign in with Google to enable cloud sync
-                            </p>
-                          </div>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <div className="h-2 w-2 bg-orange-500 rounded-full"></div>
-                          <span className="text-xs text-orange-600 dark:text-orange-400 font-medium">Local</span>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                  
-                  <Separator className="my-6" />
-                  
-                  {/* Backup & Restore */}
-                  <div className="space-y-4">
-                    <div className="flex items-center space-x-2 mb-4">
-                      <Shield className="h-4 w-4 text-primary" />
-                      <h4 className="text-sm font-medium">Backup & Restore</h4>
-                    </div>
-                    <p className="text-xs text-muted-foreground mb-4">Keep your data safe with regular backups. Restore from a previous backup if needed.</p>
-                    
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      <div className="group relative overflow-hidden rounded-lg border border-border/50 hover:bg-accent/20 dark:hover:bg-accent/50 transition-all duration-200">
-                        <Button 
-                          variant="ghost" 
-                          onClick={isSupabaseEnabled ? handleCreateBackup : handleExportData}
-                          disabled={isBackingUp}
-                          className="w-full h-auto p-6 flex flex-col items-center space-y-3 hover:bg-transparent"
-                        >
-                          <div className="p-3 rounded-full bg-primary/10 group-hover:bg-primary/20 transition-colors">
-                            {isBackingUp ? (
-                              <RefreshCw className="h-5 w-5 text-primary animate-spin" />
-                            ) : (
-                              <Download className="h-5 w-5 text-primary" />
-                            )}
-                          </div>
-                          <div className="text-center">
-                            <div className="font-medium text-sm mb-1">
-                              {isSupabaseEnabled ? 'Create Backup' : 'Export Tasks'}
-                            </div>
-                            <p className="text-xs text-muted-foreground">
-                              {isSupabaseEnabled ? 'Save to cloud storage' : 'Download as JSON file'}
-                            </p>
-                          </div>
-                          {isBackingUp && (
-                            <div className="text-xs text-muted-foreground">
-                              Creating backup...
-                            </div>
-                          )}
-                        </Button>
-                      </div>
-                      
-                      <div className="group relative overflow-hidden rounded-lg border border-border/50 hover:bg-accent/20 dark:hover:bg-accent/50 transition-all duration-200">
-                        <Button 
-                          variant="ghost" 
-                          onClick={isSupabaseEnabled ? handleRestoreFromBackup : handleImportData}
-                          disabled={isRestoring}
-                          className="w-full h-auto p-6 flex flex-col items-center space-y-3 hover:bg-transparent"
-                        >
-                          <div className="p-3 rounded-full bg-primary/10 group-hover:bg-primary/20 transition-colors">
-                            {isRestoring ? (
-                              <RefreshCw className="h-5 w-5 text-primary animate-spin" />
-                            ) : (
-                              <Upload className="h-5 w-5 text-primary" />
-                            )}
-                          </div>
-                          <div className="text-center">
-                            <div className="font-medium text-sm mb-1">
-                              {isSupabaseEnabled ? 'Restore Backup' : 'Import Tasks'}
-                            </div>
-                            <p className="text-xs text-muted-foreground">
-                              {isSupabaseEnabled ? 'From cloud backup' : 'Upload JSON file'}
-                            </p>
-                          </div>
-                          {isRestoring && (
-                            <div className="text-xs text-muted-foreground">
-                              Restoring data...
-                            </div>
-                          )}
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <Separator className="my-6" />
-                  
-                  {/* Danger Zone */}
-                  <div className="space-y-4">
-                    <div className="flex items-center space-x-2 mb-4">
-                      <Trash2 className="h-4 w-4 text-destructive" />
-                      <h4 className="text-sm font-medium text-destructive">Danger Zone</h4>
-                    </div>
-                    <p className="text-xs text-muted-foreground mb-4">Irreversible and destructive actions. Please proceed with caution.</p>
-                    
-                    <div className="p-4 bg-gradient-to-r from-red-50/50 to-rose-50/50 dark:from-red-900/20 dark:to-rose-900/20 rounded-lg border border-red-200/30 dark:border-red-800/30">
-                      <Button 
-                        variant="outline" 
-                        onClick={handleClearData}
-                        className="w-full justify-center hover:bg-destructive/10 hover:text-destructive hover:border-destructive/30 transition-colors"
-                      >
-                        <Trash2 className="h-4 w-4 mr-2" />
-                        <div className="text-center">
-                          <div className="text-sm font-medium">Clear All Data</div>
-                        </div>
-                      </Button>
-                      <p className="text-xs text-muted-foreground text-center mt-2">
-                        This action cannot be undone. All your tasks will be permanently deleted.
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        )}
-        
-        {activeSection === 'about' && (
-              <div className="animate-in slide-in-from-right-4 duration-300 h-[600px] overflow-y-auto space-y-6">
-             <div className="mb-6">
-               <h2 className="text-xl font-semibold text-foreground mb-2">About</h2>
-               <p className="text-sm text-muted-foreground">Application information and resources</p>
-             </div>
-            
-            <Card className="border-0 shadow-sm bg-card/50">
-              <CardHeader className="pb-4">
-                <CardTitle className="text-lg flex items-center space-x-2">
-                  <Shield className="h-5 w-5 text-primary" />
-                  <span>Application Info</span>
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="pt-0">
-                <div className="space-y-4">
-                  <div className="text-center space-y-2">
-                    <h3 className="font-semibold text-lg">Simplr Web v1.0 (Alpha)</h3>
-                  </div>
-                  
-                  <Separator />
-                  
-                  <p className="text-xs text-muted-foreground leading-relaxed text-center">
-                    A modern, enterprise-grade task management solution designed for productivity and simplicity.
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
 
-            <Card className="border-0 shadow-sm bg-card/50">
-              <CardHeader className="pb-4">
-                <CardTitle className="text-lg">Quick Stats</CardTitle>
-              </CardHeader>
-              <CardContent className="pt-0">
-                <div className="space-y-3">
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm text-muted-foreground">Total Tasks</span>
-                    <span className="text-sm font-medium">{taskCount}</span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm text-muted-foreground">Completed</span>
-                    <span className="text-sm font-medium">{completedTaskCount}</span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm text-muted-foreground">Sync Status</span>
-                    <span className="text-sm font-medium">
-                      {isSupabaseEnabled ? (
-                        <span className="text-green-600 dark:text-green-400">Cloud</span>
-                      ) : (
-                        <span className="text-orange-600 dark:text-orange-400">Local</span>
-                      )}
-                    </span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm text-muted-foreground">Last Backup</span>
-                    <span className="text-sm font-medium text-muted-foreground">
-                      {lastBackupDate ? (
-                        new Date(lastBackupDate).toLocaleDateString()
-                      ) : (
-                        'Never'
-                      )}
-                    </span>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-            
-            <div className="mt-8 pt-6 border-t border-border/50">
-              <div className="flex justify-center">
-                <Link to="/privacy">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="text-sm text-muted-foreground hover:text-foreground hover:bg-accent/50 transition-all duration-200 px-4 py-2 rounded-md"
-                  >
-                    <FileText className="h-4 w-4 mr-2" />
-                    Privacy Policy & Terms of Service
-                    <ExternalLink className="h-3 w-3 ml-2" />
-                  </Button>
-                </Link>
-              </div>
-            </div>
-          </div>
+      {/* Main Content */}
+      <div className="flex-1 p-8 overflow-y-auto">
+        <motion.div
+          key={activeSection}
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3, ease: 'easeOut' }}
+        >
+          {activeSection === 'account' && (
+            <AccountSettings
+              user={user}
+              taskCount={taskCount}
+              completedTaskCount={completedTaskCount}
+              onSignOut={handleSignOut}
+            />
           )}
-        </div>
+          
+          {activeSection === 'appearance' && (
+            <div className="space-y-6">
+              <div className="mb-6">
+                <h2 className="text-xl font-semibold text-foreground mb-2">Appearance</h2>
+                <p className="text-sm text-muted-foreground">Customize the look and feel of the app</p>
+              </div>
+              <Card className="border-0 shadow-sm bg-card/50">
+                <CardHeader>
+                  <CardTitle>Theme</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-3 gap-4">
+                    {themeOptions.map((option) => (
+                      <button
+                        key={option.value}
+                        onClick={() => setTheme(option.value)}
+                        className={cn(
+                          "flex flex-col items-center justify-center p-6 rounded-lg border-2 transition-all duration-200",
+                          theme === option.value
+                            ? "border-primary bg-primary/10"
+                            : "border-transparent hover:border-primary/50 bg-accent/20"
+                        )}
+                      >
+                        <option.icon className="w-8 h-8 mb-2" />
+                        <span className="font-medium">{option.label}</span>
+                      </button>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          )}
+
+          {activeSection === 'data' && (
+            <div className="space-y-6">
+              <div className="mb-6">
+                <h2 className="text-xl font-semibold text-foreground mb-2">Data Management</h2>
+                <p className="text-sm text-muted-foreground">Manage your application data</p>
+              </div>
+              <Card className="border-0 shadow-sm bg-card/50">
+                <CardHeader>
+                  <CardTitle>Data Backup & Restore</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <p className="text-sm text-muted-foreground">
+                    {isSupabaseEnabled
+                      ? "Your data is synced with the cloud."
+                      : "You are currently in guest mode. Backups are handled locally."}
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    <Button onClick={handleCreateBackup} disabled={isBackingUp} variant="outline">
+                      <Cloud className="w-4 h-4 mr-2" />
+                      {isBackingUp ? 'Backing up...' : `Backup ${isSupabaseEnabled ? 'to Cloud' : 'Locally'}`}
+                    </Button>
+                    <Button onClick={handleRestoreFromBackup} disabled={isRestoring} variant="outline">
+                      <RefreshCw className="w-4 h-4 mr-2" />
+                      {isRestoring ? 'Restoring...' : `Restore ${isSupabaseEnabled ? 'from Cloud' : 'from File'}`}
+                    </Button>
+                  </div>
+                  {lastBackupDate && (
+                    <p className="text-xs text-muted-foreground">Last backup: {lastBackupDate}</p>
+                  )}
+                </CardContent>
+              </Card>
+              <Card className="border-0 shadow-sm bg-card/50">
+                <CardHeader>
+                  <CardTitle>Local Data</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <p className="text-sm text-muted-foreground">
+                    Export your data to a JSON file or import data from a backup.
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    <Button onClick={handleExportData} variant="outline">
+                      <Download className="w-4 h-4 mr-2" />
+                      Export Data
+                    </Button>
+                    <Button onClick={handleImportData} variant="outline">
+                      <Upload className="w-4 h-4 mr-2" />
+                      Import Data
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+              <Card className="border-destructive/50 shadow-sm bg-destructive/10">
+                <CardHeader>
+                  <CardTitle className="text-destructive">Danger Zone</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <p className="text-sm text-destructive/80">
+                    This action will permanently delete all your local data.
+                  </p>
+                  <Button onClick={handleClearData} variant="destructive">
+                    <Trash2 className="w-4 h-4 mr-2" />
+                    Clear Local Data
+                  </Button>
+                </CardContent>
+              </Card>
+            </div>
+          )}
+
+          {activeSection === 'about' && (
+            <div className="space-y-6">
+              <div className="mb-6">
+                <h2 className="text-xl font-semibold text-foreground mb-2">About Simplr</h2>
+                <p className="text-sm text-muted-foreground">Information about the application</p>
+              </div>
+              <Card className="border-0 shadow-sm bg-card/50">
+                <CardContent className="p-6 text-center">
+                  <img src="/favicon4.png" alt="Simplr Logo" className="w-24 h-24 mx-auto mb-4 rounded-full" />
+                  <h3 className="text-lg font-semibold">Simplr</h3>
+                  <p className="text-sm text-muted-foreground">Alpha Testing Release</p>
+                  <p className="mt-4 text-sm">
+                    A simple and elegant task management app designed to help you focus on what matters.
+                  </p>
+                  <Separator className="my-6" />
+                  <div className="flex justify-center gap-4">
+                    <Link to="/privacy" className="text-sm text-primary hover:underline">
+                      Privacy Policy
+                    </Link>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          )}
+        </motion.div>
       </div>
     </div>
   );

@@ -5,7 +5,7 @@ import { useToast } from '@/contexts/ToastContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
+import { ViewSwitcher } from '@/components/ui/ViewSwitcher';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   AlertDialog,
@@ -27,6 +27,8 @@ import { Plus, CheckCircle, Clock, Calendar, Loader2, Home, Trash2, Grid3X3, Lay
 import { AnimatedThemeToggler } from '@/components/magicui/animated-theme-toggler';
 import { KeyboardHint } from '@/components/ui/keyboard-hint';
 import type { TaskView, Task } from '@/types';
+import lightLogo from '@/assets/simplr-web-lighttheme.png';
+import darkLogo from '@/assets/simplr-web-darktheme.png';
 
 export function TaskManager() {
   const { 
@@ -191,17 +193,15 @@ export function TaskManager() {
             <div className="flex items-center space-x-2">
               {resolvedTheme === 'dark' ? (
                 <img 
-                  src="/light-simplr-web.svg" 
+                  src={darkLogo} 
                   alt="Simplr" 
                   className="h-8 w-auto object-contain"
-                  onError={(e) => console.error('Failed to load light logo:', e)}
                 />
               ) : (
                 <img 
-                  src="/for-dark-mode.png" 
+                  src={lightLogo} 
                   alt="Simplr" 
                   className="h-8 w-auto object-contain"
-                  onError={(e) => console.error('Failed to load dark logo:', e)}
                 />
               )}
             </div>
@@ -310,33 +310,10 @@ export function TaskManager() {
                           transition={{ delay: 0.15, duration: 0.15, ease: [0.25, 0.46, 0.45, 0.94] }}
                           className="w-full sm:w-auto"
                         >
-                          <ToggleGroup
-                            type="single"
+                          <ViewSwitcher
                             value={groupByCategory ? "categories" : "grid"}
-                            onValueChange={(value) => {
-                              if (value) {
-                                setGroupByCategory(value === "categories");
-                              }
-                            }}
-                            className="bg-muted/50 backdrop-blur-sm rounded-lg p-1 border border-border/50 shadow-sm toggle-group-enhanced w-full sm:w-auto"
-                          >
-                            <ToggleGroupItem
-                              value="grid"
-                              size="sm"
-                              className="h-8 px-3 text-xs font-medium transition-all duration-300 data-[state=on]:bg-background data-[state=on]:text-foreground data-[state=on]:shadow-sm hover:bg-background/50 toggle-item-smooth flex-1 sm:flex-none"
-                            >
-                              <Grid3X3 className="h-3 w-3 mr-1.5 transition-transform duration-200 group-hover:scale-110" />
-                              <span className="hidden sm:inline">Grid</span>
-                            </ToggleGroupItem>
-                            <ToggleGroupItem
-                              value="categories"
-                              size="sm"
-                              className="h-8 px-3 text-xs font-medium transition-all duration-300 data-[state=on]:bg-background data-[state=on]:text-foreground data-[state=on]:shadow-sm hover:bg-background/50 toggle-item-smooth flex-1 sm:flex-none"
-                            >
-                              <Layers3 className="h-3 w-3 mr-1.5 transition-transform duration-200 group-hover:scale-110" />
-                              <span className="hidden sm:inline">Categories</span>
-                            </ToggleGroupItem>
-                          </ToggleGroup>
+                            onValueChange={(value) => setGroupByCategory(value === 'categories')}
+                          />
                         </motion.div>
                         
                         {currentView === 'completed' && stats.completed > 0 && (
