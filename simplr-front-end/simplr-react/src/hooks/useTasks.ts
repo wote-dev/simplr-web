@@ -1,6 +1,8 @@
 import { useState, useEffect, useCallback, useOptimistic, useTransition } from 'react';
 import type { Task, TaskCategory, TaskView, UseTasksReturn, ChecklistItem } from '@/types';
 import { useStorage, storageKeys } from './useStorage';
+import { useAuth } from '@/contexts/AuthContext';
+import { DatabaseService } from '@/lib/database';
 
 const INITIAL_TASKS: Task[] = [
   {
@@ -52,8 +54,13 @@ export function useTasks(): UseTasksReturn {
   const [, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const [currentTime, setCurrentTime] = useState(() => Date.now());
+  const [isSyncing, setIsSyncing] = useState(false);
   
   const { saveData, loadData } = useStorage();
+  const { user, isAuthenticated, authType } = useAuth();
+  
+  // Determine if we should use Supabase (authenticated non-guest users)
+  const useSupabase = isAuthenticated && authType !== 'guest' && user?.id;
 
   // Update current time periodically to handle completed task filtering
   useEffect(() => {
@@ -64,29 +71,76 @@ export function useTasks(): UseTasksReturn {
     return () => clearInterval(interval);
   }, []);
 
-  // Load tasks from storage on mount
+  // Load tasks from storage on mount and when auth state changes
   useEffect(() => {
-    const loadTasks = () => {
+    const loadTasks = async () => {
       try {
         setError(null);
-        const storedTasks = loadData<Task[]>(storageKeys.TASKS);
+        setIsSyncing(true);
         
-        if (storedTasks && Array.isArray(storedTasks) && storedTasks.length > 0) {
-          setTasks(storedTasks);
+        if (useSupabase && user?.id) {
+          // Load from Supabase for authenticated users
+          try {
+            const supabaseTasks = await DatabaseService.getUserTasks(user.id);
+            
+            if (supabaseTasks.length > 0) {
+              setTasks(supabaseTasks);
+              // Also save to localStorage as backup
+              await saveData(storageKeys.TASKS, supabaseTasks);
+            } else {
+              // Check if we have local tasks to sync
+              const localTasks = loadData<Task[]>(storageKeys.TASKS);
+              if (localTasks && localTasks.length > 0) {
+                // Sync local tasks to Supabase
+                const syncedTasks = await DatabaseService.syncLocalTasksToDatabase(localTasks, user.id);
+                setTasks(syncedTasks);
+                await saveData(storageKeys.TASKS, syncedTasks);
+              } else {
+                // Initialize with default tasks
+                const initialTasks = await Promise.all(
+                  INITIAL_TASKS.map(async (task) => {
+                    const { id, createdAt, updatedAt, ...taskData } = task;
+                    return await DatabaseService.createTask(taskData, user.id);
+                  })
+                );
+                setTasks(initialTasks);
+                await saveData(storageKeys.TASKS, initialTasks);
+              }
+            }
+          } catch (supabaseError) {
+            console.warn('Supabase unavailable, falling back to localStorage:', supabaseError);
+            // Fall back to localStorage if Supabase fails
+            const localTasks = loadData<Task[]>(storageKeys.TASKS);
+            if (localTasks && localTasks.length > 0) {
+              setTasks(localTasks);
+            } else {
+              setTasks(INITIAL_TASKS);
+              await saveData(storageKeys.TASKS, INITIAL_TASKS);
+            }
+          }
         } else {
-          // Initialize with default tasks for new users
-          setTasks(INITIAL_TASKS);
-          saveData(storageKeys.TASKS, INITIAL_TASKS);
+          // Use localStorage for guest users or when not authenticated
+          const storedTasks = loadData<Task[]>(storageKeys.TASKS);
+          
+          if (storedTasks && Array.isArray(storedTasks) && storedTasks.length > 0) {
+            setTasks(storedTasks);
+          } else {
+            // Initialize with default tasks for new users
+            setTasks(INITIAL_TASKS);
+            await saveData(storageKeys.TASKS, INITIAL_TASKS);
+          }
         }
       } catch (err) {
         console.error('Failed to load tasks:', err);
         setError('Failed to load tasks');
         setTasks(INITIAL_TASKS);
+      } finally {
+        setIsSyncing(false);
       }
     };
 
     loadTasks();
-  }, [loadData, saveData]);
+  }, [loadData, saveData, useSupabase, user?.id]);
 
   // Save tasks to storage whenever tasks change
   useEffect(() => {
@@ -99,56 +153,132 @@ export function useTasks(): UseTasksReturn {
   }, [tasks, saveData]);
 
   const addTask = useCallback(async (taskData: Omit<Task, 'id' | 'createdAt' | 'updatedAt'>): Promise<void> => {
-    const newTask: Task = {
-      ...taskData,
-      id: Date.now(), // Simple ID generation
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    };
+    try {
+      setError(null);
+      
+      if (useSupabase && user?.id) {
+        // Create task in Supabase
+        const newTask = await DatabaseService.createTask(taskData, user.id);
+        
+        // Optimistic update
+        addOptimisticTask(newTask);
+        
+        startTransition(() => {
+          setTasks(prev => [...prev, newTask]);
+        });
+      } else {
+        // Create task locally
+        const newTask: Task = {
+          ...taskData,
+          id: Date.now(), // Simple ID generation
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        };
 
-    // Optimistic update
-    addOptimisticTask(newTask);
+        // Optimistic update
+        addOptimisticTask(newTask);
 
-    startTransition(() => {
-      setTasks(prev => [...prev, newTask]);
-    });
-  }, [addOptimisticTask]);
+        startTransition(() => {
+          setTasks(prev => [...prev, newTask]);
+        });
+      }
+    } catch (err) {
+      console.error('Failed to add task:', err);
+      setError('Failed to add task');
+      throw err;
+    }
+  }, [addOptimisticTask, useSupabase, user?.id]);
 
   const updateTask = useCallback(async (id: number, updates: Partial<Task>): Promise<void> => {
-    const taskIndex = tasks.findIndex(t => t.id === id);
-    if (taskIndex === -1) {
-      throw new Error('Task not found');
+    try {
+      setError(null);
+      const taskIndex = tasks.findIndex(t => t.id === id);
+      if (taskIndex === -1) {
+        throw new Error('Task not found');
+      }
+
+      if (useSupabase && user?.id) {
+        // Update task in Supabase
+        const updatedTask = await DatabaseService.updateTask(id, updates, user.id);
+        
+        // Optimistic update
+        addOptimisticTask(updatedTask);
+
+        startTransition(() => {
+          setTasks(prev => {
+            const newTasks = [...prev];
+            const index = newTasks.findIndex(t => t.id === id);
+            if (index !== -1) {
+              newTasks[index] = updatedTask;
+            }
+            return newTasks;
+          });
+        });
+      } else {
+        // Update task locally
+        const updatedTask: Task = {
+          ...tasks[taskIndex],
+          ...updates,
+          updatedAt: new Date().toISOString(),
+        };
+
+        // Optimistic update
+        addOptimisticTask(updatedTask);
+
+        startTransition(() => {
+          setTasks(prev => {
+            const newTasks = [...prev];
+            newTasks[taskIndex] = updatedTask;
+            return newTasks;
+          });
+        });
+      }
+    } catch (err) {
+      console.error('Failed to update task:', err);
+      setError('Failed to update task');
+      throw err;
     }
-
-    const updatedTask: Task = {
-      ...tasks[taskIndex],
-      ...updates,
-      updatedAt: new Date().toISOString(),
-    };
-
-    // Optimistic update
-    addOptimisticTask(updatedTask);
-
-    startTransition(() => {
-      setTasks(prev => {
-        const newTasks = [...prev];
-        newTasks[taskIndex] = updatedTask;
-        return newTasks;
-      });
-    });
-  }, [tasks, addOptimisticTask]);
+  }, [tasks, addOptimisticTask, useSupabase, user?.id]);
 
   const deleteTask = useCallback(async (id: number): Promise<void> => {
-    startTransition(() => {
-      setTasks(prev => prev.filter(t => t.id !== id));
-    });
-  }, []);
+    try {
+      setError(null);
+      
+      if (useSupabase && user?.id) {
+        // Delete task from Supabase
+        await DatabaseService.deleteTask(id, user.id);
+      }
+      
+      // Update local state
+      startTransition(() => {
+        setTasks(prev => prev.filter(task => task.id !== id));
+      });
+    } catch (err) {
+      console.error('Failed to delete task:', err);
+      setError('Failed to delete task');
+      throw err;
+    }
+  }, [useSupabase, user?.id]);
 
   const clearAllCompleted = useCallback(async (): Promise<void> => {
-    startTransition(() => {
-      setTasks(prev => prev.filter(t => !t.completed));
-    });
-  }, []);
+    try {
+      setError(null);
+      
+      if (useSupabase && user?.id) {
+        // Delete completed tasks from Supabase
+        await DatabaseService.deleteCompletedTasks(user.id);
+      }
+      
+      // Update local state
+      startTransition(() => {
+        setTasks(prev => prev.filter(task => !task.completed));
+      });
+    } catch (err) {
+      console.error('Failed to clear completed tasks:', err);
+      setError('Failed to clear completed tasks');
+      throw err;
+    }
+  }, [useSupabase, user?.id]);
 
   const toggleTaskComplete = useCallback(async (id: number): Promise<void> => {
     const task = optimisticTasks.find(t => t.id === id);
@@ -270,6 +400,7 @@ export function useTasks(): UseTasksReturn {
     updateChecklistItem,
     getTasksForView,
     isLoading: false, // Remove loading state that was causing UI flicker
+    isSyncing,
     error,
   };
 }

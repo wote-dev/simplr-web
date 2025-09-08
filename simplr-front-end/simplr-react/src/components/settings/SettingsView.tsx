@@ -1,14 +1,25 @@
 import { useAuth } from '@/contexts/AuthContext';
 import { useTheme } from '@/contexts/ThemeContext';
+import { useTasks } from '@/hooks/useTasks';
+import { DatabaseService } from '@/lib/database';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { User, Moon, Sun, Monitor, LogOut, Trash2, Download, Upload, Shield, Database, Palette } from 'lucide-react';
+import { User, Moon, Sun, Monitor, LogOut, Trash2, Download, Upload, Shield, Database, Palette, Cloud, CloudOff, RefreshCw } from 'lucide-react';
+import { useState } from 'react';
 
 export function SettingsView() {
-  const { user, signOut } = useAuth();
+  const { user, signOut, isAuthenticated, authType } = useAuth();
   const { theme, setTheme } = useTheme();
+  const { tasks } = useTasks();
+  const [isBackingUp, setIsBackingUp] = useState(false);
+  const [isRestoring, setIsRestoring] = useState(false);
+  const [lastBackupDate, setLastBackupDate] = useState<string | null>(null);
+  
+  const isSupabaseEnabled = isAuthenticated && authType !== 'guest';
+  const taskCount = tasks.length;
+  const completedTaskCount = tasks.filter(task => task.completed).length;
 
   const handleSignOut = async () => {
     try {
@@ -18,30 +29,77 @@ export function SettingsView() {
     }
   };
 
-  const handleExportData = () => {
-    // Get tasks from localStorage
-    const tasks = localStorage.getItem('simplr_tasks');
-    if (tasks) {
-      const dataStr = JSON.stringify({
-        tasks: JSON.parse(tasks),
-        exportDate: new Date().toISOString(),
-        version: '1.0'
-      }, null, 2);
+  const handleCreateBackup = async () => {
+    if (!user?.id) return;
+    
+    try {
+      setIsBackingUp(true);
       
-      const dataBlob = new Blob([dataStr], { type: 'application/json' });
-      const url = URL.createObjectURL(dataBlob);
-      
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = `simplr-backup-${new Date().toISOString().split('T')[0]}.json`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      
-      URL.revokeObjectURL(url);
+      if (isSupabaseEnabled) {
+         // Create backup in Supabase
+         const backup = await DatabaseService.createBackup(user.id);
+         setLastBackupDate(backup.timestamp);
+         console.log('Backup created:', backup);
+       } else {
+        // Fallback to local export
+        handleExportData();
+      }
+    } catch (error) {
+      console.error('Failed to create backup:', error);
+      alert('Failed to create backup. Please try again.');
+    } finally {
+      setIsBackingUp(false);
     }
   };
+  
+  const handleExportData = () => {
+    const dataStr = JSON.stringify({
+      tasks,
+      exportDate: new Date().toISOString(),
+      version: '1.0'
+    }, null, 2);
+    
+    const dataBlob = new Blob([dataStr], { type: 'application/json' });
+    const url = URL.createObjectURL(dataBlob);
+    
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `simplr-backup-${new Date().toISOString().split('T')[0]}.json`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    URL.revokeObjectURL(url);
+  };
 
+  const handleRestoreFromBackup = async () => {
+    if (!user?.id || !isSupabaseEnabled) {
+      handleImportData();
+      return;
+    }
+    
+    try {
+      setIsRestoring(true);
+      
+      // For now, we'll restore from the most recent backup
+       // In a full implementation, you might want to show a list of available backups
+       const backup = await DatabaseService.createBackup(user.id); // Get current state as backup format
+       const restoreData = {
+         tasks: backup.tasks,
+         ...(backup.profile && { profile: backup.profile })
+       };
+       await DatabaseService.restoreFromBackup(restoreData, user.id);
+      
+      // Refresh the page to load restored data
+      window.location.reload();
+    } catch (error) {
+      console.error('Failed to restore from backup:', error);
+      alert('Failed to restore from backup. Please try again.');
+    } finally {
+      setIsRestoring(false);
+    }
+  };
+  
   const handleImportData = () => {
     const input = document.createElement('input');
     input.type = 'file';
@@ -51,11 +109,17 @@ export function SettingsView() {
       const file = (e.target as HTMLInputElement).files?.[0];
       if (file) {
         const reader = new FileReader();
-        reader.onload = (e) => {
+        reader.onload = async (e) => {
           try {
             const data = JSON.parse(e.target?.result as string);
             if (data.tasks && Array.isArray(data.tasks)) {
-              localStorage.setItem('simplr_tasks', JSON.stringify(data.tasks));
+              if (isSupabaseEnabled && user?.id) {
+                // Restore to Supabase
+                await DatabaseService.restoreFromBackup({ tasks: data.tasks }, user.id);
+              } else {
+                // Restore to localStorage
+                localStorage.setItem('simplr_tasks', JSON.stringify(data.tasks));
+              }
               window.location.reload(); // Refresh to load new data
             }
           } catch (error) {
@@ -205,33 +269,94 @@ export function SettingsView() {
             <Card className="border border-border/50 shadow-sm bg-card/50 backdrop-blur-sm">
               <CardContent className="p-6">
                 <div className="space-y-6">
+                  {/* Sync Status */}
+                  {isSupabaseEnabled && (
+                    <div className="p-4 bg-accent/20 rounded-lg border border-accent/30">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-3">
+                          <div className="p-2 bg-primary/10 rounded-lg">
+                            <Cloud className="h-4 w-4 text-primary" />
+                          </div>
+                          <div>
+                            <h4 className="text-sm font-medium">Cloud Sync Enabled</h4>
+                            <p className="text-xs text-muted-foreground">
+                              Your tasks are automatically synced to Supabase
+                            </p>
+                          </div>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <div className="h-2 w-2 bg-green-500 rounded-full"></div>
+                          <span className="text-xs text-muted-foreground">Connected</span>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                  
+                  {!isSupabaseEnabled && (
+                    <div className="p-4 bg-muted/50 rounded-lg border border-muted">
+                      <div className="flex items-center space-x-3">
+                        <div className="p-2 bg-muted rounded-lg">
+                          <CloudOff className="h-4 w-4 text-muted-foreground" />
+                        </div>
+                        <div>
+                          <h4 className="text-sm font-medium">Local Storage Only</h4>
+                          <p className="text-xs text-muted-foreground">
+                            Sign in with Google or Apple to enable cloud sync
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                  
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="space-y-3">
-                      <h4 className="text-sm font-medium">Backup Data</h4>
+                      <h4 className="text-sm font-medium">
+                        {isSupabaseEnabled ? 'Cloud Backup' : 'Export Data'}
+                      </h4>
                       <Button 
                         variant="outline" 
-                        onClick={handleExportData}
+                        onClick={isSupabaseEnabled ? handleCreateBackup : handleExportData}
+                        disabled={isBackingUp}
                         className="w-full h-12 justify-start hover:bg-accent/50 transition-colors"
                       >
-                        <Download className="h-4 w-4 mr-3" />
+                        {isBackingUp ? (
+                          <RefreshCw className="h-4 w-4 mr-3 animate-spin" />
+                        ) : (
+                          <Download className="h-4 w-4 mr-3" />
+                        )}
                         <div className="text-left">
-                          <div className="text-sm font-medium">Export Tasks</div>
-                          <div className="text-xs text-muted-foreground">Download as JSON</div>
+                          <div className="text-sm font-medium">
+                            {isSupabaseEnabled ? 'Create Backup' : 'Export Tasks'}
+                          </div>
+                          <div className="text-xs text-muted-foreground">
+                            {isSupabaseEnabled ? 'Save to cloud' : 'Download as JSON'}
+                          </div>
                         </div>
                       </Button>
                     </div>
                     
                     <div className="space-y-3">
-                      <h4 className="text-sm font-medium">Restore Data</h4>
+                      <h4 className="text-sm font-medium">
+                        {isSupabaseEnabled ? 'Cloud Restore' : 'Import Data'}
+                      </h4>
                       <Button 
                         variant="outline" 
-                        onClick={handleImportData}
+                        onClick={isSupabaseEnabled ? handleRestoreFromBackup : handleImportData}
+                        disabled={isRestoring}
                         className="w-full h-12 justify-start hover:bg-accent/50 transition-colors"
                       >
-                        <Upload className="h-4 w-4 mr-3" />
+                        {isRestoring ? (
+                          <RefreshCw className="h-4 w-4 mr-3 animate-spin" />
+                        ) : (
+                          <Upload className="h-4 w-4 mr-3" />
+                        )}
                         <div className="text-left">
-                          <div className="text-sm font-medium">Import Tasks</div>
-                          <div className="text-xs text-muted-foreground">Upload JSON file</div>
+                          <div className="text-sm font-medium">
+                            {isSupabaseEnabled ? 'Restore Backup' : 'Import Tasks'}
+                          </div>
+                          <div className="text-xs text-muted-foreground">
+                            {isSupabaseEnabled ? 'From cloud backup' : 'Upload JSON file'}
+                          </div>
                         </div>
                       </Button>
                     </div>
@@ -292,20 +417,32 @@ export function SettingsView() {
             <CardContent className="pt-0">
               <div className="space-y-3">
                 <div className="flex justify-between items-center">
-                  <span className="text-sm text-muted-foreground">Storage Used</span>
-                  <span className="text-sm font-medium">
-                    {Math.round((JSON.stringify(localStorage.getItem('simplr_tasks') || '[]').length / 1024) * 100) / 100} KB
-                  </span>
+                  <span className="text-sm text-muted-foreground">Total Tasks</span>
+                  <span className="text-sm font-medium">{taskCount}</span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-sm text-muted-foreground">Total Tasks</span>
+                  <span className="text-sm text-muted-foreground">Completed</span>
+                  <span className="text-sm font-medium">{completedTaskCount}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-muted-foreground">Sync Status</span>
                   <span className="text-sm font-medium">
-                    {JSON.parse(localStorage.getItem('simplr_tasks') || '[]').length}
+                    {isSupabaseEnabled ? (
+                      <span className="text-green-600">Cloud</span>
+                    ) : (
+                      <span className="text-orange-600">Local</span>
+                    )}
                   </span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-sm text-muted-foreground">Last Backup</span>
-                  <span className="text-sm font-medium text-muted-foreground">Never</span>
+                  <span className="text-sm font-medium text-muted-foreground">
+                    {lastBackupDate ? (
+                      new Date(lastBackupDate).toLocaleDateString()
+                    ) : (
+                      'Never'
+                    )}
+                  </span>
                 </div>
               </div>
             </CardContent>

@@ -136,6 +136,7 @@ export interface UseTasksReturn {
   updateChecklistItem: (taskId: number, itemId: number, updates: Partial<ChecklistItem>) => void;
   getTasksForView: (view: TaskView) => Task[];
   isLoading: boolean;
+  isSyncing: boolean;
   error: string | null;
 }
 
