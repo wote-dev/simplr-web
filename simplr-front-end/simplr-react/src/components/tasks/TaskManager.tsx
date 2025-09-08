@@ -147,11 +147,12 @@ export function TaskManager() {
       const item = task.checklist.find(item => item.id === itemId);
       if (!item) return;
       
-      updateChecklistItem(taskId, itemId, { done: !item.done });
+      await updateChecklistItem(taskId, itemId, { done: !item.done });
     } catch (error) {
       console.error('Error updating checklist item:', error);
+      showToast('Failed to update checklist item', 'error');
     }
-  }, [tasks, updateChecklistItem]);
+  }, [tasks, updateChecklistItem, showToast]);
 
   const handleClearAllCompleted = async () => {
     try {

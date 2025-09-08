@@ -133,7 +133,7 @@ export interface UseTasksReturn {
   deleteTask: (id: number) => Promise<void>;
   clearAllCompleted: () => Promise<void>;
   toggleTaskComplete: (id: number) => Promise<void>;
-  updateChecklistItem: (taskId: number, itemId: number, updates: Partial<ChecklistItem>) => void;
+  updateChecklistItem: (taskId: number, itemId: number, updates: Partial<ChecklistItem>) => Promise<void>;
   getTasksForView: (view: TaskView) => Task[];
   isLoading: boolean;
   isSyncing: boolean;

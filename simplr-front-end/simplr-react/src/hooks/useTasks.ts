@@ -295,36 +295,59 @@ export function useTasks(): UseTasksReturn {
   }, [useSupabase, user?.id]);
 
   const toggleTaskComplete = useCallback(async (id: number): Promise<void> => {
-    const task = optimisticTasks.find(t => t.id === id);
-    if (!task) {
-      throw new Error('Task not found');
-    }
-
-    const updatedTask: Task = {
-      ...task,
-      completed: !task.completed,
-      updatedAt: new Date().toISOString(),
-    };
-
-    // Immediate optimistic update
-    addOptimisticTask(updatedTask);
-
-    // Then update the actual state
-    startTransition(async () => {
-      try {
-        setTasks(prev => {
-          const newTasks = prev.map(t => 
-            t.id === id ? updatedTask : t
-          );
-          return newTasks;
-        });
-      } catch (error) {
-        // Revert optimistic update on error
-        addOptimisticTask(task);
-        throw error;
+    try {
+      setError(null);
+      const task = optimisticTasks.find(t => t.id === id);
+      if (!task) {
+        throw new Error('Task not found');
       }
-    });
-  }, [optimisticTasks, addOptimisticTask, startTransition]);
+
+      const updatedTask: Task = {
+        ...task,
+        completed: !task.completed,
+        updatedAt: new Date().toISOString(),
+      };
+
+      // Immediate optimistic update
+      addOptimisticTask(updatedTask);
+
+      if (useSupabase && user?.id) {
+        // Update task completion status in Supabase
+        const dbUpdatedTask = await DatabaseService.updateTask(id, { completed: updatedTask.completed }, user.id);
+        
+        // Update with the response from database to ensure consistency
+        addOptimisticTask(dbUpdatedTask);
+        
+        startTransition(() => {
+          setTasks(prev => {
+            const newTasks = prev.map(t => 
+              t.id === id ? dbUpdatedTask : t
+            );
+            return newTasks;
+          });
+        });
+      } else {
+        // Update local state only for guest users
+        startTransition(() => {
+          setTasks(prev => {
+            const newTasks = prev.map(t => 
+              t.id === id ? updatedTask : t
+            );
+            return newTasks;
+          });
+        });
+      }
+    } catch (error) {
+      console.error('Failed to toggle task completion:', error);
+      setError('Failed to update task');
+      // Revert optimistic update on error
+      const originalTask = tasks.find(t => t.id === id);
+      if (originalTask) {
+        addOptimisticTask(originalTask);
+      }
+      throw error;
+    }
+  }, [optimisticTasks, addOptimisticTask, startTransition, useSupabase, user?.id, tasks]);
 
   const getTasksForView = useCallback((view: TaskView): Task[] => {
     const now = new Date(currentTime);
@@ -366,43 +389,71 @@ export function useTasks(): UseTasksReturn {
     }
   }, [optimisticTasks, currentTime]);
 
-  const updateChecklistItem = useCallback((taskId: number, itemId: number, updates: Partial<ChecklistItem>) => {
-    const task = optimisticTasks.find(t => t.id === taskId);
-    if (!task || !task.checklist) return;
+  const updateChecklistItem = useCallback(async (taskId: number, itemId: number, updates: Partial<ChecklistItem>) => {
+    try {
+      setError(null);
+      const task = optimisticTasks.find(t => t.id === taskId);
+      if (!task || !task.checklist) return;
 
-    const updatedChecklist = task.checklist.map(item => 
-      item.id === itemId ? { ...item, ...updates } : item
-    );
+      const updatedChecklist = task.checklist.map(item => 
+        item.id === itemId ? { ...item, ...updates } : item
+      );
 
-    const updatedTask = {
-      ...task,
-      checklist: updatedChecklist,
-      updatedAt: new Date().toISOString()
-    };
+      const updatedTask = {
+        ...task,
+        checklist: updatedChecklist,
+        updatedAt: new Date().toISOString()
+      };
 
-    // Apply optimistic update immediately
-    addOptimisticTask(updatedTask);
+      // Apply optimistic update immediately
+      addOptimisticTask(updatedTask);
 
-    // Then persist to storage
-    startTransition(async () => {
-      try {
-        const currentTasks = loadData<Task[]>(storageKeys.TASKS) || tasks;
-        const updatedTasks = currentTasks.map(t => 
-          t.id === taskId ? updatedTask : t
-        );
-        await saveData(storageKeys.TASKS, updatedTasks);
-        // Only update base state after successful save to sync with storage
-        setTasks(updatedTasks);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to update checklist item');
-        // Revert optimistic update on error by reloading tasks
-        const storedTasks = loadData<Task[]>(storageKeys.TASKS);
-        if (storedTasks) {
-          setTasks(storedTasks);
-        }
+      if (useSupabase && user?.id) {
+        // Update task checklist in Supabase
+        const dbUpdatedTask = await DatabaseService.updateTask(taskId, { checklist: updatedChecklist }, user.id);
+        
+        // Update with the response from database to ensure consistency
+        addOptimisticTask(dbUpdatedTask);
+        
+        startTransition(() => {
+          setTasks(prev => {
+            const newTasks = prev.map(t => 
+              t.id === taskId ? dbUpdatedTask : t
+            );
+            return newTasks;
+          });
+        });
+      } else {
+        // Update local state only for guest users
+        startTransition(async () => {
+          try {
+            const currentTasks = loadData<Task[]>(storageKeys.TASKS) || tasks;
+            const updatedTasks = currentTasks.map(t => 
+              t.id === taskId ? updatedTask : t
+            );
+            await saveData(storageKeys.TASKS, updatedTasks);
+            setTasks(updatedTasks);
+          } catch (err) {
+            setError(err instanceof Error ? err.message : 'Failed to update checklist item');
+            // Revert optimistic update on error by reloading tasks
+            const storedTasks = loadData<Task[]>(storageKeys.TASKS);
+            if (storedTasks) {
+              setTasks(storedTasks);
+            }
+          }
+        });
       }
-    });
-  }, [optimisticTasks, saveData, startTransition, addOptimisticTask, loadData]);
+    } catch (error) {
+      console.error('Failed to update checklist item:', error);
+      setError('Failed to update checklist item');
+      // Revert optimistic update on error
+      const originalTask = tasks.find(t => t.id === taskId);
+      if (originalTask) {
+        addOptimisticTask(originalTask);
+      }
+      throw error;
+    }
+  }, [optimisticTasks, saveData, startTransition, addOptimisticTask, loadData, useSupabase, user?.id, tasks]);
 
   return {
     tasks: optimisticTasks,
