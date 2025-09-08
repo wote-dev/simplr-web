@@ -155,18 +155,25 @@ export function useTasks(): UseTasksReturn {
   const addTask = useCallback(async (taskData: Omit<Task, 'id' | 'createdAt' | 'updatedAt'>): Promise<void> => {
     try {
       setError(null);
+      console.log('Adding task:', { taskData, useSupabase, userId: user?.id });
       
       if (useSupabase && user?.id) {
+        console.log('Creating task in Supabase...');
         // Create task in Supabase
         const newTask = await DatabaseService.createTask(taskData, user.id);
+        console.log('Task created in Supabase:', newTask);
         
         // Optimistic update
         addOptimisticTask(newTask);
         
         startTransition(() => {
-          setTasks(prev => [...prev, newTask]);
+          setTasks(prev => {
+            console.log('Updating tasks state with new task:', newTask);
+            return [...prev, newTask];
+          });
         });
       } else {
+        console.log('Creating task locally...');
         // Create task locally
         const newTask: Task = {
           ...taskData,
@@ -174,12 +181,16 @@ export function useTasks(): UseTasksReturn {
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
         };
+        console.log('Task created locally:', newTask);
 
         // Optimistic update
         addOptimisticTask(newTask);
 
         startTransition(() => {
-          setTasks(prev => [...prev, newTask]);
+          setTasks(prev => {
+            console.log('Updating tasks state with new task:', newTask);
+            return [...prev, newTask];
+          });
         });
       }
     } catch (err) {

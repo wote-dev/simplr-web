@@ -136,7 +136,9 @@ export class DatabaseService {
 
   static async createTask(task: Omit<Task, 'id' | 'createdAt' | 'updatedAt'>, userId: string): Promise<Task> {
     try {
+      console.log('DatabaseService.createTask called with:', { task, userId });
       const dbTask = mapTaskToDatabaseTask(task, userId);
+      console.log('Mapped database task:', dbTask);
       
       const { data, error } = await supabase
         .from('tasks')
@@ -144,9 +146,12 @@ export class DatabaseService {
         .select()
         .single();
 
+      console.log('Supabase insert result:', { data, error });
       if (error) throw error;
 
-      return mapDatabaseTaskToTask(data);
+      const mappedTask = mapDatabaseTaskToTask(data);
+      console.log('Mapped task result:', mappedTask);
+      return mappedTask;
     } catch (error) {
       console.error('Error creating task:', error);
       throw new Error('Failed to create task');
