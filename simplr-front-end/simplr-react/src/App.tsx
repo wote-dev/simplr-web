@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { ThemeProvider } from '@/contexts/ThemeContext';
 import { AuthProvider, useAuth } from '@/contexts/AuthContext';
 import { ToastProvider } from '@/contexts/ToastContext';
@@ -6,6 +7,7 @@ import { Toaster } from '@/components/ui/toaster';
 import { LoginOverlay } from '@/components/auth/LoginOverlay';
 import { AuthCallback } from '@/components/auth/AuthCallback';
 import { TaskManager } from '@/components/tasks/TaskManager';
+import { PrivacyPolicyPage } from '@/pages/PrivacyPolicyPage';
 import { Loader2 } from 'lucide-react';
 
 function AppContent() {
@@ -43,25 +45,31 @@ function AppContent() {
     );
   }
 
-  if (!isAuthenticated) {
-    return <LoginOverlay />;
-  }
-
-  return <TaskManager />;
+  return (
+    <Routes>
+      <Route path="/privacy" element={<PrivacyPolicyPage />} />
+      <Route path="/" element={
+        !isAuthenticated ? <LoginOverlay /> : <TaskManager />
+      } />
+      <Route path="*" element={<Navigate to="/" replace />} />
+    </Routes>
+  );
 }
 
 function App() {
   return (
-    <ThemeProvider defaultTheme="system">
-      <AuthProvider>
-        <ToastProvider>
-          <div className="min-h-screen bg-background text-foreground">
-            <AppContent />
-            <Toaster />
-          </div>
-        </ToastProvider>
-      </AuthProvider>
-    </ThemeProvider>
+    <Router>
+      <ThemeProvider defaultTheme="system">
+        <AuthProvider>
+          <ToastProvider>
+            <div className="min-h-screen bg-background text-foreground">
+              <AppContent />
+              <Toaster />
+            </div>
+          </ToastProvider>
+        </AuthProvider>
+      </ThemeProvider>
+    </Router>
   );
 }
 

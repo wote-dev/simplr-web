@@ -6,8 +6,9 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { User, Moon, Sun, Monitor, LogOut, Trash2, Download, Upload, Shield, Database, Palette, Cloud, CloudOff, RefreshCw } from 'lucide-react';
+import { User, Moon, Sun, Monitor, LogOut, Trash2, Download, Upload, Shield, Database, Palette, Cloud, CloudOff, RefreshCw, FileText, ExternalLink } from 'lucide-react';
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 
 export function SettingsView() {
   const { user, signOut, isAuthenticated, authType } = useAuth();
@@ -15,6 +16,7 @@ export function SettingsView() {
   const { tasks } = useTasks();
   const [isBackingUp, setIsBackingUp] = useState(false);
   const [isRestoring, setIsRestoring] = useState(false);
+  // Removed showPrivacyPolicy state as we're now using a separate page
   const [lastBackupDate, setLastBackupDate] = useState<string | null>(null);
   
   const isSupabaseEnabled = isAuthenticated && authType !== 'guest';
@@ -447,6 +449,23 @@ export function SettingsView() {
               </div>
             </CardContent>
           </Card>
+        </div>
+      </div>
+      
+      {/* Privacy Policy Link at Bottom */}
+      <div className="mt-8 pt-6 border-t border-border/50">
+        <div className="flex justify-center">
+          <Link to="/privacy">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="text-sm text-muted-foreground hover:text-foreground hover:bg-accent/50 transition-all duration-200 px-4 py-2 rounded-md"
+            >
+              <FileText className="h-4 w-4 mr-2" />
+              Privacy Policy & Terms of Service
+              <ExternalLink className="h-3 w-3 ml-2" />
+            </Button>
+          </Link>
         </div>
       </div>
     </div>
