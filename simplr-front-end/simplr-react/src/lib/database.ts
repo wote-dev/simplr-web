@@ -19,7 +19,7 @@ export interface DatabaseUserProfile {
   id: string;
   name: string;
   avatar_url?: string;
-  preferences: Record<string, any>;
+  preferences: Record<string, unknown>;
   created_at: string;
   updated_at: string;
 }
@@ -228,6 +228,7 @@ export class DatabaseService {
       // Create new tasks
       const createdTasks: Task[] = [];
       for (const task of newTasks) {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const { id, createdAt, updatedAt, ...taskData } = task;
         const createdTask = await this.createTask(taskData, userId);
         createdTasks.push(createdTask);
@@ -283,6 +284,7 @@ export class DatabaseService {
 
       // Restore tasks
       for (const task of backup.tasks) {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const { id, createdAt, updatedAt, ...taskData } = task;
         await this.createTask(taskData, userId);
       }

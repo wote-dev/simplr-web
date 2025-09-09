@@ -1,8 +1,25 @@
-import { useState, useEffect, useCallback, useOptimistic, useTransition } from 'react';
+import { useState, useEffect, useCallback, useOptimistic, useTransition, useRef } from 'react';
 import type { Task, TaskCategory, TaskView, UseTasksReturn, ChecklistItem } from '@/types';
 import { useStorage, storageKeys } from './useStorage';
 import { useAuth } from '@/contexts/AuthContext';
 import { DatabaseService } from '@/lib/database';
+import { supabase } from '@/lib/supabase';
+import type { RealtimeChannel } from '@supabase/supabase-js';
+
+// Helper function to safely map database row to Task
+function mapDatabaseRowToTask(row: Record<string, unknown>): Task {
+  return {
+    id: row.id as number,
+    title: row.title as string,
+    description: (row.description as string) || '',
+    category: row.category as TaskCategory,
+    completed: row.completed as boolean,
+    checklist: (row.checklist as ChecklistItem[]) || null,
+    dueDate: (row.due_date as string) || null,
+    createdAt: row.created_at as string,
+    updatedAt: row.updated_at as string,
+  };
+}
 
 const INITIAL_TASKS: Task[] = [
   {
@@ -55,6 +72,7 @@ export function useTasks(): UseTasksReturn {
   const [error, setError] = useState<string | null>(null);
   const [currentTime, setCurrentTime] = useState(() => Date.now());
   const [isSyncing, setIsSyncing] = useState(false);
+  const channelRef = useRef<RealtimeChannel | null>(null);
   
   const { saveData, loadData } = useStorage();
   const { user, isAuthenticated, authType } = useAuth();
@@ -102,6 +120,7 @@ export function useTasks(): UseTasksReturn {
                 // Initialize with default tasks
                 const initialTasks = await Promise.all(
                   INITIAL_TASKS.map(async (task) => {
+                    // eslint-disable-next-line @typescript-eslint/no-unused-vars
                     const { id, createdAt, updatedAt, ...taskData } = task;
                     return await DatabaseService.createTask(taskData, user.id);
                   })
@@ -154,6 +173,127 @@ export function useTasks(): UseTasksReturn {
       });
     }
   }, [tasks, saveData]);
+
+  // Set up real-time subscriptions for authenticated users
+  useEffect(() => {
+    if (!useSupabase || !user?.id) {
+      // Clean up any existing subscription for guest users
+      if (channelRef.current) {
+        supabase.removeChannel(channelRef.current);
+        channelRef.current = null;
+      }
+      return;
+    }
+
+    // Set up real-time subscription for tasks
+    const channel = supabase
+      .channel('tasks-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'tasks',
+          filter: `user_id=eq.${user.id}`,
+        },
+        (payload) => {
+          console.log('Real-time task change:', payload);
+          
+          try {
+            switch (payload.eventType) {
+              case 'INSERT': {
+                const newTask = payload.new as Record<string, unknown>;
+                const mappedTask = mapDatabaseRowToTask(newTask);
+                
+                startTransition(() => {
+                  setTasks(prev => {
+                    // Check if task already exists to avoid duplicates
+                    const exists = prev.some(t => t.id === mappedTask.id);
+                    if (!exists) {
+                      console.log('Adding new task from real-time:', mappedTask);
+                      return [...prev, mappedTask];
+                    }
+                    return prev;
+                  });
+                });
+                break;
+              }
+              
+              case 'UPDATE': {
+                const updatedTask = payload.new as Record<string, unknown>;
+                const mappedTask = mapDatabaseRowToTask(updatedTask);
+                
+                startTransition(() => {
+                  setTasks(prev => {
+                    const index = prev.findIndex(t => t.id === mappedTask.id);
+                    if (index !== -1) {
+                      console.log('Updating task from real-time:', mappedTask);
+                      const newTasks = [...prev];
+                      newTasks[index] = mappedTask;
+                      return newTasks;
+                    }
+                    return prev;
+                  });
+                });
+                break;
+              }
+              
+              case 'DELETE': {
+                const deletedTask = payload.old as Record<string, unknown>;
+                const taskId = deletedTask.id as number;
+                
+                startTransition(() => {
+                  setTasks(prev => {
+                    console.log('Deleting task from real-time:', taskId);
+                    return prev.filter(t => t.id !== taskId);
+                  });
+                });
+                break;
+              }
+            }
+          } catch (error) {
+             console.error('Error handling real-time task change:', error);
+             // Don't set a persistent error for individual payload processing errors
+             // as this could be due to malformed data from a single event
+           }
+        }
+      )
+      .subscribe((status) => {
+        console.log('Real-time subscription status:', status);
+        if (status === 'SUBSCRIBED') {
+          console.log('Successfully subscribed to task changes');
+          // Clear any previous errors when successfully connected
+          setError(null);
+        } else if (status === 'CHANNEL_ERROR') {
+          console.error('Real-time subscription error');
+          setError('Real-time sync temporarily unavailable');
+          
+          // Attempt to reconnect after a delay
+          setTimeout(() => {
+            if (channelRef.current && useSupabase && user?.id) {
+              console.log('Attempting to reconnect real-time subscription...');
+              supabase.removeChannel(channelRef.current);
+              // The useEffect will recreate the subscription
+            }
+          }, 5000);
+        } else if (status === 'CLOSED') {
+          console.log('Real-time subscription closed');
+        } else if (status === 'TIMED_OUT') {
+          console.warn('Real-time subscription timed out');
+          setError('Connection timeout - retrying...');
+        }
+      });
+
+    channelRef.current = channel;
+
+    // Cleanup function
+    return () => {
+      if (channelRef.current) {
+        supabase.removeChannel(channelRef.current);
+        channelRef.current = null;
+      }
+    };
+  }, [useSupabase, user?.id, startTransition]);
 
   const addTask = useCallback(async (taskData: Omit<Task, 'id' | 'createdAt' | 'updatedAt'>): Promise<void> => {
     try {

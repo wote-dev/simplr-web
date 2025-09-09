@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronDown } from 'lucide-react';
 import { TaskCard } from './TaskCard';
 import { taskCategories, getTasksByCategory } from '@/hooks/useTasks';
@@ -59,9 +59,12 @@ export function CategoryGroupedTasks({
             className="rounded-lg bg-card/50 border overflow-hidden"
           >
             {/* Category Header */}
-            <button 
+            <motion.button 
               className="w-full flex items-center gap-3 px-4 py-3 text-left"
               onClick={() => toggleCategory(category)}
+              whileHover={{ backgroundColor: 'rgba(var(--accent), 0.03)' }}
+              whileTap={{ scale: 0.998 }}
+              transition={{ duration: 0.15, ease: [0.25, 0.46, 0.45, 0.94] }}
             >
               <div className={`w-3 h-3 rounded-full bg-${categoryConfig.color}-500 flex-shrink-0`} />
               <h3 className="text-lg font-semibold text-foreground">
@@ -71,39 +74,69 @@ export function CategoryGroupedTasks({
               <span className="text-sm text-muted-foreground font-medium">
                 {categoryTasks.length} {categoryTasks.length === 1 ? 'task' : 'tasks'}
               </span>
-              <ChevronDown className={`w-5 h-5 text-muted-foreground transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
-            </button>
+              <motion.div
+                animate={{ rotate: isExpanded ? 180 : 0 }}
+                transition={{ duration: 0.2, ease: [0.25, 0.46, 0.45, 0.94] }}
+              >
+                <ChevronDown className="w-5 h-5 text-muted-foreground" />
+              </motion.div>
+            </motion.button>
             
             {/* Category Tasks (Collapsible) */}
-            {isExpanded && (
-              <motion.div 
-                className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3 p-4 pt-0"
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: 'auto' }}
-                exit={{ opacity: 0, height: 0 }}
-                transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
-              >
-                {categoryTasks.map((task, taskIndex) => (
-                  <motion.div
-                    key={task.id}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ 
-                      delay: taskIndex * 0.05, 
-                      duration: 0.2
-                    }}
+            <AnimatePresence initial={false}>
+              {isExpanded && (
+                <motion.div 
+                  className="overflow-hidden"
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ 
+                    height: 'auto', 
+                    opacity: 1,
+                    transition: {
+                      height: { duration: 0.25, ease: [0.25, 0.46, 0.45, 0.94] },
+                      opacity: { duration: 0.2, delay: 0.05, ease: [0.25, 0.46, 0.45, 0.94] }
+                    }
+                  }}
+                  exit={{ 
+                    height: 0, 
+                    opacity: 0,
+                    transition: {
+                      height: { duration: 0.2, delay: 0.05, ease: [0.25, 0.46, 0.45, 0.94] },
+                      opacity: { duration: 0.15, ease: [0.25, 0.46, 0.45, 0.94] }
+                    }
+                  }}
+                >
+                  <motion.div 
+                    className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3 p-4 pt-0"
+                    initial={{ y: -10 }}
+                    animate={{ y: 0 }}
+                    exit={{ y: -5 }}
+                    transition={{ duration: 0.2, ease: [0.25, 0.46, 0.45, 0.94] }}
                   >
-                    <TaskCard
-                      task={task}
-                      onToggleComplete={onToggleComplete}
-                      onEdit={onEdit}
-                      onDelete={onDelete}
-                      onToggleChecklistItem={onToggleChecklistItem}
-                    />
+                    {categoryTasks.map((task, taskIndex) => (
+                      <motion.div
+                        key={task.id}
+                        initial={{ opacity: 0, y: 8, scale: 0.98 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{ opacity: 0, y: -4, scale: 0.98 }}
+                        transition={{ 
+                          delay: taskIndex * 0.03, 
+                          duration: 0.18,
+                          ease: [0.25, 0.46, 0.45, 0.94]
+                        }}
+                      >
+                        <TaskCard
+                          task={task}
+                          onToggleComplete={onToggleComplete}
+                          onEdit={onEdit}
+                          onDelete={onDelete}
+                          onToggleChecklistItem={onToggleChecklistItem}
+                        />
+                      </motion.div>
+                    ))}
                   </motion.div>
-                ))}
-              </motion.div>
-            )}
+                </motion.div>
+              )}
+            </AnimatePresence>
           </motion.div>
         );
       })}

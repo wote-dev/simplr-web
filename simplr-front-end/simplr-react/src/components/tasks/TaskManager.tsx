@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useTasks } from '@/hooks/useTasks';
 import { useTheme } from '@/contexts/ThemeContext';
-import { useToast } from '@/contexts/ToastContext';
+import { useToast } from '@/hooks/useToastContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';

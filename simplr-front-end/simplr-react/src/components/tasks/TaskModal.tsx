@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { DatePicker } from '@/components/ui/date-picker';
 import { X, Plus, Trash2 } from 'lucide-react';
-import { useToast } from '@/contexts/ToastContext';
+import { useToast } from '@/hooks/useToastContext';
 import type { Task, TaskCategory, ChecklistItem } from '@/types';
 import { taskCategories } from '@/hooks/useTasks';
 
