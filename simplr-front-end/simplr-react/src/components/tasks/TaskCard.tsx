@@ -2,7 +2,7 @@ import { useState, memo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Check, Edit, Trash2, Calendar, Clock, MoreVertical, Sparkles } from 'lucide-react';
+import { Check, Edit, Trash2, Calendar, Clock, MoreVertical } from 'lucide-react';
 import type { Task } from '@/types';
 import { taskCategories, getTaskProgress, isTaskOverdue } from '@/hooks/useTasks';
 
