@@ -18,14 +18,15 @@ import {
   AlertDialogCancel,
 } from '@/components/ui/alert-dialog';
 
-import Dock from '@/components/Dock';
 import { TaskModal } from '@/components/tasks/TaskModal';
 import { TaskCard } from '@/components/tasks/TaskCard';
 import { CategoryGroupedTasks } from '@/components/tasks/CategoryGroupedTasks';
 import { SettingsModal } from '@/components/settings/SettingsModal';
-import { Plus, CheckCircle, Clock, Calendar, Loader2, Home, Trash2 } from 'lucide-react';
+import { BottomNavigation } from '@/components/ui/BottomNavigation';
+import { Settings, Plus, CheckCircle, Clock, Calendar, Loader2, Home, Trash2 } from 'lucide-react';
 import { AnimatedThemeToggler } from '@/components/magicui/animated-theme-toggler';
 import { KeyboardHint } from '@/components/ui/keyboard-hint';
+import Dock from '@/components/Dock';
 import type { TaskView, Task } from '@/types';
 import lightLogo from '@/assets/simplr-web-lighttheme.png';
 import darkLogo from '@/assets/simplr-web-darktheme.png';
@@ -239,7 +240,7 @@ export function TaskManager() {
         </div>
       </header>
 
-      <main className="w-full max-w-6xl mx-auto px-4 py-6 flex-1 flex flex-col">
+      <main className="w-full max-w-6xl mx-auto px-4 py-6 flex-1 flex flex-col pb-24 sm:pb-6">
         <AnimatePresence mode="wait">
           <motion.div
             key={currentView}
@@ -437,31 +438,42 @@ export function TaskManager() {
         </AnimatePresence>
       </main>
 
-      <Dock
-        items={[
-          {
-            icon: <Home className="h-6 w-6" />,
-            label: "Today",
-            onClick: () => handleViewChange('today')
-          },
-          {
-            icon: <Calendar className="h-6 w-6" />,
-            label: "Upcoming",
-            onClick: () => handleViewChange('upcoming')
-          },
-          {
-            icon: <CheckCircle className="h-6 w-6" />,
-            label: "Completed",
-            onClick: () => handleViewChange('completed')
-          },
-          {
-            icon: <Plus className="h-6 w-6" />,
-            label: "Add Task",
-            onClick: handleAddTask,
-            className: "bg-foreground text-background hover:bg-foreground/90 dark:bg-white dark:text-black dark:hover:bg-gray-100"
-          }
-        ]}
-      />
+      <div className="sm:hidden">
+        <BottomNavigation 
+          currentView={currentView}
+          onViewChange={handleViewChange}
+          onAddTask={handleAddTask}
+          onOpenSettings={handleOpenSettings}
+        />
+      </div>
+
+      <div className="hidden sm:block">
+        <Dock
+          items={[
+            {
+              icon: <Home className="h-6 w-6" />,
+              label: "Today",
+              onClick: () => handleViewChange('today')
+            },
+            {
+              icon: <Calendar className="h-6 w-6" />,
+              label: "Upcoming",
+              onClick: () => handleViewChange('upcoming')
+            },
+            {
+              icon: <CheckCircle className="h-6 w-6" />,
+              label: "Completed",
+              onClick: () => handleViewChange('completed')
+            },
+            {
+              icon: <Plus className="h-6 w-6" />,
+              label: "Add Task",
+              onClick: handleAddTask,
+              className: "bg-foreground text-background hover:bg-foreground/90 dark:bg-white dark:text-black dark:hover:bg-gray-100"
+            }
+          ]}
+        />
+      </div>
 
       <TaskModal
         isOpen={isTaskModalOpen}

@@ -1,26 +1,27 @@
 import { Button } from '@/components/ui/button';
-import { Home, Plus, CheckSquare } from 'lucide-react';
+import { Home, Plus, Settings, Calendar, CheckCircle } from 'lucide-react';
 import type { TaskView } from '@/types';
 
 interface BottomNavigationProps {
   currentView: TaskView;
   onViewChange: (view: TaskView) => void;
   onAddTask: () => void;
+  onOpenSettings: () => void;
 }
 
-export function BottomNavigation({ currentView, onViewChange, onAddTask }: BottomNavigationProps) {
+export function BottomNavigation({ currentView, onViewChange, onAddTask, onOpenSettings }: BottomNavigationProps) {
   const navItems = [
     {
-      id: 'upcoming' as const,
-      icon: Home,
-      label: 'Home',
-      view: 'upcoming' as TaskView,
-    },
-    {
       id: 'today' as const,
-      icon: CheckSquare,
+      icon: Home,
       label: 'Today',
       view: 'today' as TaskView,
+    },
+    {
+      id: 'upcoming' as const,
+      icon: Calendar,
+      label: 'Upcoming',
+      view: 'upcoming' as TaskView,
     },
     {
       id: 'add' as const,
@@ -30,9 +31,15 @@ export function BottomNavigation({ currentView, onViewChange, onAddTask }: Botto
     },
     {
       id: 'completed' as const,
-      icon: CheckSquare,
-      label: 'Done',
+      icon: CheckCircle,
+      label: 'Completed',
       view: 'completed' as TaskView,
+    },
+    {
+      id: 'settings' as const,
+      icon: Settings,
+      label: 'Settings',
+      view: null,
     },
   ];
 
@@ -44,6 +51,7 @@ export function BottomNavigation({ currentView, onViewChange, onAddTask }: Botto
             const Icon = item.icon;
             const isActive = item.view === currentView;
             const isAddButton = item.id === 'add';
+            const isSettingsButton = item.id === 'settings';
 
             if (isAddButton) {
               return (
@@ -51,9 +59,26 @@ export function BottomNavigation({ currentView, onViewChange, onAddTask }: Botto
                   key={item.id}
                   onClick={onAddTask}
                   size="lg"
-                  className="h-12 w-12 rounded-full bg-primary hover:bg-primary/90 shadow-lg"
+                  className="h-12 w-12 rounded-full bg-primary shadow-lg"
                 >
                   <Icon className="h-6 w-6 text-primary-foreground" />
+                </Button>
+              );
+            }
+
+            if (isSettingsButton) {
+              return (
+                <Button
+                  key={item.id}
+                  variant="ghost"
+                  size="sm"
+                  onClick={onOpenSettings}
+                  className={`flex flex-col items-center space-y-1 h-auto py-2 px-3 text-muted-foreground hover:bg-transparent`}
+                >
+                  <Icon className={`h-5 w-5 text-muted-foreground`} />
+                  <span className={`text-xs text-muted-foreground`}>
+                    {item.label}
+                  </span>
                 </Button>
               );
             }
@@ -64,7 +89,7 @@ export function BottomNavigation({ currentView, onViewChange, onAddTask }: Botto
                 variant="ghost"
                 size="sm"
                 onClick={() => onViewChange(item.view!)}
-                className={`flex flex-col items-center space-y-1 h-auto py-2 px-3 ${
+                className={`flex flex-col items-center space-y-1 h-auto py-2 px-3 hover:bg-transparent ${
                   isActive ? 'text-primary' : 'text-muted-foreground'
                 }`}
               >

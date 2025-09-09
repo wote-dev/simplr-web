@@ -182,7 +182,7 @@ export function SettingsView() {
   ];
 
   return (
-    <div className="flex h-full max-h-[calc(95vh-80px)] bg-gradient-to-br from-background via-background to-accent/5">
+    <div className="flex h-full bg-gradient-to-br from-background via-background to-accent/5">
       {/* Sidebar Navigation */}
       <div className="w-64 border-r border-border/10 bg-background/50 backdrop-blur-sm p-4">
         <nav className="space-y-1">
