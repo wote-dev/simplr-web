@@ -1,11 +1,12 @@
 import { useState, useEffect, useCallback } from 'react';
-import { useTasks } from '@/hooks/useTasks';
+import { useTasks, sortTasks, type SortOption } from '@/hooks/useTasks';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useToast } from '@/hooks/useToastContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ViewSwitcher } from '@/components/ui/ViewSwitcher';
+import { SortDropdown } from '@/components/ui/SortDropdown';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   AlertDialog,
@@ -53,8 +54,10 @@ export function TaskManager() {
   const [showClearAllDialog, setShowClearAllDialog] = useState(false);
   const [groupByCategory, setGroupByCategory] = useState(false);
   const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
+  const [sortBy, setSortBy] = useState<SortOption>('latest');
 
-  const viewTasks = getTasksForView(currentView);
+  const rawViewTasks = getTasksForView(currentView);
+  const viewTasks = sortTasks(rawViewTasks, sortBy);
 
   const handleAddTask = () => {
     setEditingTask(undefined);
@@ -216,7 +219,7 @@ export function TaskManager() {
               variant="secondary"
               className="hidden sm:flex"
             />
-            <AnimatedThemeToggler className="h-9 w-9 p-2 hover:bg-accent hover:text-accent-foreground rounded-md transition-colors [&>svg]:h-5 [&>svg]:w-5" />
+            <AnimatedThemeToggler className="h-9 w-9 p-2 hover:bg-gray-100 dark:hover:bg-accent hover:text-gray-700 dark:hover:text-accent-foreground rounded-md transition-colors [&>svg]:h-5 [&>svg]:w-5" />
             <Button
               variant="ghost"
               size="icon"
@@ -260,7 +263,7 @@ export function TaskManager() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.05, duration: 0.2, ease: [0.25, 0.46, 0.45, 0.94] }}
               >
-                <div className="flex flex-col space-y-4 mb-4 sm:flex-row sm:items-center sm:justify-between sm:space-y-0">
+                <div className="flex flex-col space-y-4 mb-4 sm:flex-row sm:items-end sm:justify-between sm:space-y-0">
                   <div>
                     <motion.h2 
                       className="text-2xl font-bold"
@@ -282,14 +285,14 @@ export function TaskManager() {
                     </motion.p>
                   </div>
                   
-                  {stats && (
-                    <motion.div 
-                      className="flex flex-col space-y-3 sm:flex-row sm:items-center sm:space-y-0 sm:space-x-4 text-sm"
-                      initial={{ opacity: 0, x: 6 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: 0.12, duration: 0.18, ease: [0.25, 0.46, 0.45, 0.94] }}
-                    >
-                      <div className="flex items-center justify-between sm:justify-start sm:space-x-4">
+                  <div className="flex flex-col space-y-3 sm:space-y-4">
+                    {stats && (
+                      <motion.div 
+                        className="flex items-center space-x-4 text-sm justify-start sm:justify-end"
+                        initial={{ opacity: 0, y: 6 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.12, duration: 0.18, ease: [0.25, 0.46, 0.45, 0.94] }}
+                      >
                         <div className="flex items-center space-x-1 text-muted-foreground">
                           <Clock className="h-4 w-4" />
                           <span className="font-medium">{stats.today} today</span>
@@ -302,9 +305,15 @@ export function TaskManager() {
                           <CheckCircle className="h-4 w-4" />
                           <span className="font-medium">{stats.completed} done</span>
                         </div>
-                      </div>
-                      
-                      <div className="flex flex-col space-y-2 sm:flex-row sm:items-center sm:space-y-0 sm:space-x-2">
+                      </motion.div>
+                    )}
+                    {stats && (
+                      <motion.div 
+                        className="flex flex-col space-y-2 sm:flex-row sm:items-center sm:space-y-0 sm:space-x-2"
+                        initial={{ opacity: 0, y: 6 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.12, duration: 0.18, ease: [0.25, 0.46, 0.45, 0.94] }}
+                      >
                         <motion.div
                           initial={{ opacity: 0, scale: 0.98 }}
                           animate={{ opacity: 1, scale: 1 }}
@@ -314,6 +323,18 @@ export function TaskManager() {
                           <ViewSwitcher
                             value={groupByCategory ? "categories" : "grid"}
                             onValueChange={(value) => setGroupByCategory(value === 'categories')}
+                          />
+                        </motion.div>
+                        
+                        <motion.div
+                          initial={{ opacity: 0, scale: 0.98 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          transition={{ delay: 0.18, duration: 0.15, ease: [0.25, 0.46, 0.45, 0.94] }}
+                          className="w-full sm:w-auto"
+                        >
+                          <SortDropdown
+                            value={sortBy}
+                            onValueChange={setSortBy}
                           />
                         </motion.div>
                         
@@ -328,9 +349,9 @@ export function TaskManager() {
                             Clear All
                           </Button>
                         )}
-                      </div>
-                    </motion.div>
-                  )}
+                      </motion.div>
+                    )}
+                  </div>
                 </div>
               </motion.div>
             )}
@@ -367,7 +388,7 @@ export function TaskManager() {
                       onClick={handleAddTask}
                       variant="outline" 
                       size="sm"
-                      className="text-muted-foreground hover:text-foreground hover:bg-accent/10 transition-colors"
+                      className="text-muted-foreground hover:text-gray-700 dark:hover:text-foreground hover:bg-accent/10 transition-colors"
                     >
                       <Plus className="h-4 w-4 mr-2" />
                       Add Task

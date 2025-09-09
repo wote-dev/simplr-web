@@ -21,7 +21,7 @@ export function ViewSwitcher({ value, onValueChange }: ViewSwitcherProps) {
           key={option.id}
           onClick={() => onValueChange(option.id)}
           className={`relative flex items-center justify-center rounded-full px-4 py-1.5 text-xs font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 sm:px-5 sm:py-1.5 sm:text-sm ${
-            value === option.id ? 'text-foreground' : 'text-muted-foreground hover:text-foreground'
+            value === option.id ? 'text-foreground' : 'text-muted-foreground hover:text-gray-700 dark:hover:text-foreground'
           }`}
         >
           {value === option.id && (

@@ -831,3 +831,45 @@ export function getTasksByCategory(tasks: Task[]): Record<TaskCategory, Task[]> 
   
   return categorized;
 }
+
+export type SortOption = 'latest' | 'oldest' | 'dueDate' | 'alphabetical';
+
+export function sortTasks(tasks: Task[], sortBy: SortOption): Task[] {
+  const tasksCopy = [...tasks];
+  
+  switch (sortBy) {
+    case 'latest':
+      return tasksCopy.sort((a, b) => {
+        const dateA = new Date(a.createdAt || a.updatedAt || 0);
+        const dateB = new Date(b.createdAt || b.updatedAt || 0);
+        return dateB.getTime() - dateA.getTime(); // Newest first
+      });
+    
+    case 'oldest':
+      return tasksCopy.sort((a, b) => {
+        const dateA = new Date(a.createdAt || a.updatedAt || 0);
+        const dateB = new Date(b.createdAt || b.updatedAt || 0);
+        return dateA.getTime() - dateB.getTime(); // Oldest first
+      });
+    
+    case 'dueDate':
+      return tasksCopy.sort((a, b) => {
+        // Tasks without due dates go to the end
+        if (!a.dueDate && !b.dueDate) return 0;
+        if (!a.dueDate) return 1;
+        if (!b.dueDate) return -1;
+        
+        const dateA = new Date(a.dueDate);
+        const dateB = new Date(b.dueDate);
+        return dateA.getTime() - dateB.getTime(); // Earliest due date first
+      });
+    
+    case 'alphabetical':
+      return tasksCopy.sort((a, b) => {
+        return a.title.toLowerCase().localeCompare(b.title.toLowerCase());
+      });
+    
+    default:
+      return tasksCopy;
+  }
+}

@@ -196,8 +196,8 @@ export function SettingsView() {
                 className={cn(
                   "group w-full flex items-center space-x-3 px-3 py-3 rounded-lg text-left transition-all duration-200 ease-in-out",
                   isActive
-                    ? "bg-primary text-primary-foreground"
-                    : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+                    ? "bg-gray-200 dark:bg-primary text-gray-900 dark:text-primary-foreground"
+                    : "text-muted-foreground hover:bg-gray-100 dark:hover:bg-accent hover:text-gray-700 dark:hover:text-accent-foreground"
                 )}
               >
                 <Icon className="w-5 h-5 text-current flex-shrink-0 transition-transform duration-300 ease-out group-hover:scale-105" />
