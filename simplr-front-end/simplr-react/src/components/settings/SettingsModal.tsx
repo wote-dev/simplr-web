@@ -8,8 +8,6 @@ import {
   SheetContent, 
   SheetTrigger 
 } from '@/components/ui/sheet';
-import { Button } from '@/components/ui/button';
-import { Settings } from 'lucide-react';
 import { SettingsView } from './SettingsView';
 import { useMediaQuery } from '@/hooks/useMediaQuery';
 
