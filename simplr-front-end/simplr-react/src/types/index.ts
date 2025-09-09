@@ -138,6 +138,7 @@ export interface UseTasksReturn {
   isLoading: boolean;
   isSyncing: boolean;
   error: string | null;
+  connectionStatus: 'disconnected' | 'connecting' | 'connected' | 'error';
 }
 
 export interface UseAuthReturn extends AuthState {

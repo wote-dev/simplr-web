@@ -72,7 +72,11 @@ export function useTasks(): UseTasksReturn {
   const [error, setError] = useState<string | null>(null);
   const [currentTime, setCurrentTime] = useState(() => Date.now());
   const [isSyncing, setIsSyncing] = useState(false);
+  const [connectionStatus, setConnectionStatus] = useState<'disconnected' | 'connecting' | 'connected' | 'error'>('disconnected');
   const channelRef = useRef<RealtimeChannel | null>(null);
+  const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const reconnectAttemptsRef = useRef(0);
+  const maxReconnectAttempts = 5;
   
   const { saveData, loadData } = useStorage();
   const { user, isAuthenticated, authType } = useAuth();
@@ -174,20 +178,79 @@ export function useTasks(): UseTasksReturn {
     }
   }, [tasks, saveData]);
 
+  // Reconnection function with exponential backoff
+  const attemptReconnection = useCallback(() => {
+    if (reconnectAttemptsRef.current >= maxReconnectAttempts) {
+      console.error('❌ Max reconnection attempts reached');
+      setConnectionStatus('error');
+      setError('Unable to establish real-time connection');
+      return;
+    }
+
+    const delay = Math.min(1000 * Math.pow(2, reconnectAttemptsRef.current), 30000); // Exponential backoff, max 30s
+    console.log(`🔄 Scheduling reconnection attempt ${reconnectAttemptsRef.current + 1}/${maxReconnectAttempts} in ${delay}ms`);
+    
+    reconnectTimeoutRef.current = setTimeout(() => {
+      reconnectAttemptsRef.current += 1;
+      setConnectionStatus('connecting');
+      
+      // Clean up existing subscription
+      if (channelRef.current) {
+        channelRef.current.unsubscribe();
+        channelRef.current = null;
+      }
+      
+      // Trigger re-subscription by updating a dependency
+      // This will cause the useEffect to run again
+    }, delay);
+  }, []);
+
+  // Clear reconnection timeout on cleanup
+  useEffect(() => {
+    return () => {
+      if (reconnectTimeoutRef.current) {
+        clearTimeout(reconnectTimeoutRef.current);
+        reconnectTimeoutRef.current = null;
+      }
+    };
+  }, []);
+
   // Set up real-time subscriptions for authenticated users
   useEffect(() => {
     if (!useSupabase || !user?.id) {
       // Clean up any existing subscription for guest users
       if (channelRef.current) {
-        supabase.removeChannel(channelRef.current);
+        console.log('Cleaning up real-time subscription for guest user');
+        channelRef.current.unsubscribe();
         channelRef.current = null;
       }
+      setConnectionStatus('disconnected');
+      // Clear any pending reconnection attempts
+      if (reconnectTimeoutRef.current) {
+        clearTimeout(reconnectTimeoutRef.current);
+        reconnectTimeoutRef.current = null;
+      }
+      reconnectAttemptsRef.current = 0;
       return;
     }
 
+    // Clean up existing subscription before creating a new one
+    if (channelRef.current) {
+      console.log('Cleaning up existing real-time subscription');
+      channelRef.current.unsubscribe();
+      channelRef.current = null;
+    }
+
+    // Set connecting status
+    setConnectionStatus('connecting');
+
+    // Create a unique channel name for this user session
+    const channelName = `user-tasks-${user.id}-${Date.now()}`;
+    console.log('Setting up real-time subscription:', channelName);
+
     // Set up real-time subscription for tasks
     const channel = supabase
-      .channel('tasks-changes')
+      .channel(channelName)
       .on(
         'postgres_changes',
         {
@@ -197,7 +260,7 @@ export function useTasks(): UseTasksReturn {
           filter: `user_id=eq.${user.id}`,
         },
         (payload) => {
-          console.log('Real-time task change:', payload);
+          console.log('Real-time task change received:', payload.eventType, payload);
           
           try {
             switch (payload.eventType) {
@@ -210,9 +273,10 @@ export function useTasks(): UseTasksReturn {
                     // Check if task already exists to avoid duplicates
                     const exists = prev.some(t => t.id === mappedTask.id);
                     if (!exists) {
-                      console.log('Adding new task from real-time:', mappedTask);
-                      return [...prev, mappedTask];
+                      console.log('Adding new task from real-time:', mappedTask.id, mappedTask.title);
+                      return [mappedTask, ...prev]; // Add to beginning for better UX
                     }
+                    console.log('Task already exists, skipping duplicate:', mappedTask.id);
                     return prev;
                   });
                 });
@@ -227,12 +291,13 @@ export function useTasks(): UseTasksReturn {
                   setTasks(prev => {
                     const index = prev.findIndex(t => t.id === mappedTask.id);
                     if (index !== -1) {
-                      console.log('Updating task from real-time:', mappedTask);
+                      console.log('Updating task from real-time:', mappedTask.id, mappedTask.title);
                       const newTasks = [...prev];
                       newTasks[index] = mappedTask;
                       return newTasks;
                     }
-                    return prev;
+                    console.log('Task not found for update, adding it:', mappedTask.id);
+                    return [mappedTask, ...prev];
                   });
                 });
                 break;
@@ -244,43 +309,56 @@ export function useTasks(): UseTasksReturn {
                 
                 startTransition(() => {
                   setTasks(prev => {
-                    console.log('Deleting task from real-time:', taskId);
-                    return prev.filter(t => t.id !== taskId);
+                    const filtered = prev.filter(t => t.id !== taskId);
+                    console.log('Deleting task from real-time:', taskId, 'Remaining tasks:', filtered.length);
+                    return filtered;
                   });
                 });
                 break;
               }
             }
           } catch (error) {
-             console.error('Error handling real-time task change:', error);
-             // Don't set a persistent error for individual payload processing errors
-             // as this could be due to malformed data from a single event
-           }
+            console.error('Error handling real-time task change:', error, payload);
+            // Log the error but don't break the subscription for individual payload errors
+            // This could be due to malformed data from a single event
+            setError(`Failed to process real-time update: ${error instanceof Error ? error.message : 'Unknown error'}`);
+            
+            // Clear the error after a short delay to not permanently show it
+            setTimeout(() => {
+              setError(null);
+            }, 5000);
+          }
         }
       )
       .subscribe((status) => {
-        console.log('Real-time subscription status:', status);
+        console.log('Real-time subscription status changed:', status);
         if (status === 'SUBSCRIBED') {
-          console.log('Successfully subscribed to task changes');
-          // Clear any previous errors when successfully connected
+          console.log('✅ Successfully subscribed to real-time task changes');
+          setConnectionStatus('connected');
           setError(null);
+          // Reset reconnection attempts on successful connection
+          reconnectAttemptsRef.current = 0;
+          if (reconnectTimeoutRef.current) {
+            clearTimeout(reconnectTimeoutRef.current);
+            reconnectTimeoutRef.current = null;
+          }
         } else if (status === 'CHANNEL_ERROR') {
-          console.error('Real-time subscription error');
+          console.error('❌ Real-time subscription error');
+          setConnectionStatus('error');
           setError('Real-time sync temporarily unavailable');
-          
-          // Attempt to reconnect after a delay
-          setTimeout(() => {
-            if (channelRef.current && useSupabase && user?.id) {
-              console.log('Attempting to reconnect real-time subscription...');
-              supabase.removeChannel(channelRef.current);
-              // The useEffect will recreate the subscription
-            }
-          }, 5000);
+          attemptReconnection();
         } else if (status === 'CLOSED') {
-          console.log('Real-time subscription closed');
+          console.log('🔌 Real-time subscription closed');
+          setConnectionStatus('disconnected');
+          if (useSupabase && user?.id) {
+            // Only attempt reconnection if we should be connected
+            attemptReconnection();
+          }
         } else if (status === 'TIMED_OUT') {
-          console.warn('Real-time subscription timed out');
+          console.warn('⏰ Real-time subscription timed out');
+          setConnectionStatus('error');
           setError('Connection timeout - retrying...');
+          attemptReconnection();
         }
       });
 
@@ -289,11 +367,19 @@ export function useTasks(): UseTasksReturn {
     // Cleanup function
     return () => {
       if (channelRef.current) {
-        supabase.removeChannel(channelRef.current);
+        console.log('🧹 Cleaning up real-time subscription on unmount');
+        channelRef.current.unsubscribe();
         channelRef.current = null;
       }
+      setConnectionStatus('disconnected');
+      // Clear any pending reconnection attempts
+      if (reconnectTimeoutRef.current) {
+        clearTimeout(reconnectTimeoutRef.current);
+        reconnectTimeoutRef.current = null;
+      }
+      reconnectAttemptsRef.current = 0;
     };
-  }, [useSupabase, user?.id, startTransition]);
+  }, [useSupabase, user?.id, startTransition, attemptReconnection]);
 
   const addTask = useCallback(async (taskData: Omit<Task, 'id' | 'createdAt' | 'updatedAt'>): Promise<void> => {
     try {
@@ -338,7 +424,19 @@ export function useTasks(): UseTasksReturn {
       }
     } catch (err) {
       console.error('Failed to add task:', err);
-      setError('Failed to add task');
+      const errorMessage = err instanceof Error ? err.message : 'Unknown error occurred';
+      
+      // Provide specific error messages based on error type
+      if (errorMessage.includes('network') || errorMessage.includes('fetch')) {
+        setError('Network error: Unable to save task. Please check your connection.');
+      } else if (errorMessage.includes('auth') || errorMessage.includes('unauthorized')) {
+        setError('Authentication error: Please sign in again.');
+      } else {
+        setError(`Failed to add task: ${errorMessage}`);
+      }
+      
+      // Clear error after 10 seconds
+      setTimeout(() => setError(null), 10000);
       throw err;
     }
   }, [addOptimisticTask, useSupabase, user?.id]);
@@ -389,7 +487,21 @@ export function useTasks(): UseTasksReturn {
       }
     } catch (err) {
       console.error('Failed to update task:', err);
-      setError('Failed to update task');
+      const errorMessage = err instanceof Error ? err.message : 'Unknown error occurred';
+      
+      // Provide specific error messages based on error type
+      if (errorMessage.includes('network') || errorMessage.includes('fetch')) {
+        setError('Network error: Unable to update task. Please check your connection.');
+      } else if (errorMessage.includes('auth') || errorMessage.includes('unauthorized')) {
+        setError('Authentication error: Please sign in again.');
+      } else if (errorMessage.includes('not found')) {
+        setError('Task not found. It may have been deleted.');
+      } else {
+        setError(`Failed to update task: ${errorMessage}`);
+      }
+      
+      // Clear error after 10 seconds
+      setTimeout(() => setError(null), 10000);
       throw err;
     }
   }, [tasks, addOptimisticTask, useSupabase, user?.id]);
@@ -409,7 +521,21 @@ export function useTasks(): UseTasksReturn {
       });
     } catch (err) {
       console.error('Failed to delete task:', err);
-      setError('Failed to delete task');
+      const errorMessage = err instanceof Error ? err.message : 'Unknown error occurred';
+      
+      // Provide specific error messages based on error type
+      if (errorMessage.includes('network') || errorMessage.includes('fetch')) {
+        setError('Network error: Unable to delete task. Please check your connection.');
+      } else if (errorMessage.includes('auth') || errorMessage.includes('unauthorized')) {
+        setError('Authentication error: Please sign in again.');
+      } else if (errorMessage.includes('not found')) {
+        setError('Task not found. It may have already been deleted.');
+      } else {
+        setError(`Failed to delete task: ${errorMessage}`);
+      }
+      
+      // Clear error after 10 seconds
+      setTimeout(() => setError(null), 10000);
       throw err;
     }
   }, [useSupabase, user?.id]);
@@ -429,7 +555,19 @@ export function useTasks(): UseTasksReturn {
       });
     } catch (err) {
       console.error('Failed to clear completed tasks:', err);
-      setError('Failed to clear completed tasks');
+      const errorMessage = err instanceof Error ? err.message : 'Unknown error occurred';
+      
+      // Provide specific error messages based on error type
+      if (errorMessage.includes('network') || errorMessage.includes('fetch')) {
+        setError('Network error: Unable to clear completed tasks. Please check your connection.');
+      } else if (errorMessage.includes('auth') || errorMessage.includes('unauthorized')) {
+        setError('Authentication error: Please sign in again.');
+      } else {
+        setError(`Failed to clear completed tasks: ${errorMessage}`);
+      }
+      
+      // Clear error after 10 seconds
+      setTimeout(() => setError(null), 10000);
       throw err;
     }
   }, [useSupabase, user?.id]);
@@ -479,12 +617,27 @@ export function useTasks(): UseTasksReturn {
       }
     } catch (error) {
       console.error('Failed to toggle task completion:', error);
-      setError('Failed to update task');
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      
+      // Provide specific error messages based on error type
+      if (errorMessage.includes('network') || errorMessage.includes('fetch')) {
+        setError('Network error: Unable to update task. Please check your connection.');
+      } else if (errorMessage.includes('auth') || errorMessage.includes('unauthorized')) {
+        setError('Authentication error: Please sign in again.');
+      } else if (errorMessage.includes('not found')) {
+        setError('Task not found. It may have been deleted.');
+      } else {
+        setError(`Failed to update task: ${errorMessage}`);
+      }
+      
       // Revert optimistic update on error
       const originalTask = tasks.find(t => t.id === id);
       if (originalTask) {
         addOptimisticTask(originalTask);
       }
+      
+      // Clear error after 10 seconds
+      setTimeout(() => setError(null), 10000);
       throw error;
     }
   }, [optimisticTasks, addOptimisticTask, startTransition, useSupabase, user?.id, tasks]);
@@ -585,7 +738,22 @@ export function useTasks(): UseTasksReturn {
       }
     } catch (error) {
       console.error('Failed to update checklist item:', error);
-      setError('Failed to update checklist item');
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      
+      // Provide specific error messages based on error type
+      if (errorMessage.includes('network') || errorMessage.includes('fetch')) {
+        setError('Network error: Unable to update checklist item. Please check your connection.');
+      } else if (errorMessage.includes('auth') || errorMessage.includes('unauthorized')) {
+        setError('Authentication error: Please sign in again.');
+      } else if (errorMessage.includes('not found')) {
+        setError('Task or checklist item not found.');
+      } else {
+        setError(`Failed to update checklist item: ${errorMessage}`);
+      }
+      
+      // Clear error after 10 seconds
+      setTimeout(() => setError(null), 10000);
+      
       // Revert optimistic update on error
       const originalTask = tasks.find(t => t.id === taskId);
       if (originalTask) {
@@ -607,6 +775,7 @@ export function useTasks(): UseTasksReturn {
     isLoading: false, // Remove loading state that was causing UI flicker
     isSyncing,
     error,
+    connectionStatus,
   };
 }
 

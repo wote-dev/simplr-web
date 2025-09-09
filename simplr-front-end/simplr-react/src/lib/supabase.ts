@@ -13,6 +13,16 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
     persistSession: true,
     detectSessionInUrl: true,
     flowType: 'pkce'
+  },
+  realtime: {
+    params: {
+      eventsPerSecond: 10
+    }
+  },
+  global: {
+    headers: {
+      'X-Client-Info': 'simplr-web@1.0.0'
+    }
   }
 });
 
