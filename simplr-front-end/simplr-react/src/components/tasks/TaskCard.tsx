@@ -54,17 +54,17 @@ const TaskCardComponent = ({ task, onToggleComplete, onEdit, onDelete, onToggleC
       // Start disappearing animation after completion animation
       setTimeout(() => {
         setIsDisappearing(true);
-      }, 600); // Wait for completion animation to finish
+      }, 400); // Reduced from 600ms
       
       // Call the toggle function after a brief delay to show the completion animation
       setTimeout(() => {
         onToggleComplete(task.id);
-      }, 300);
+      }, 200); // Reduced from 300ms
       
       // Reset completing state after animation
       setTimeout(() => {
         setIsCompleting(false);
-      }, 300);
+      }, 200); // Reduced from 300ms
     } else {
       setIsUncompleting(true);
       // Immediate optimistic update with animation
@@ -72,7 +72,7 @@ const TaskCardComponent = ({ task, onToggleComplete, onEdit, onDelete, onToggleC
       // Reset uncompleting state after animation
       setTimeout(() => {
         setIsUncompleting(false);
-      }, 300);
+      }, 200); // Reduced from 300ms
     }
   };
 
@@ -85,18 +85,16 @@ const TaskCardComponent = ({ task, onToggleComplete, onEdit, onDelete, onToggleC
   return (
     <motion.div
       layout
-      initial={{ opacity: 0, y: 20, scale: 0.95 }}
+      initial={{ opacity: 0, y: 20, scale: 0.98 }}
       animate={{ 
         opacity: isDisappearing ? 0 : 1, 
-        y: isDisappearing ? -30 : 0,
-        scale: isDisappearing ? 0.85 : 1,
-        filter: isDisappearing ? 'blur(4px)' : 'blur(0px)'
+        y: isDisappearing ? -20 : 0,
+        scale: isDisappearing ? 0.95 : 1
       }}
-      exit={{ opacity: 0, y: -20, scale: 0.95, filter: 'blur(2px)' }}
+      exit={{ opacity: 0, y: -20, scale: 0.98 }}
       transition={{ 
-        duration: isDisappearing ? 0.5 : 0.3,
-        ease: isDisappearing ? [0.4, 0, 0.2, 1] : [0.25, 0.46, 0.45, 0.94],
-        filter: { duration: isDisappearing ? 0.3 : 0.2 }
+        duration: isDisappearing ? 0.3 : 0.2,
+        ease: [0.25, 0.46, 0.45, 0.94]
       }}
     >
       <Card className={`hover:shadow-md hover:border-primary/50 transition-all duration-200 ${
@@ -123,22 +121,13 @@ const TaskCardComponent = ({ task, onToggleComplete, onEdit, onDelete, onToggleC
                 }`}
               >
                 <AnimatePresence mode="wait">
-                  {isCompleting ? (
-                    <motion.div
-                      key="completing"
-                      initial={{ scale: 0, rotate: -180 }}
-                      animate={{ scale: 1, rotate: 0 }}
-                      exit={{ scale: 0, rotate: 180 }}
-                      transition={{ duration: 0.3, type: "spring", stiffness: 300 }}
-                    >
-                      <Sparkles className="h-2.5 w-2.5" />
-                    </motion.div>
-                  ) : task.completed ? (
+                  {(isCompleting || task.completed) ? (
                     <motion.div
                       key="completed"
-                      initial={{ scale: 0, rotate: -180 }}
-                      animate={{ scale: 1, rotate: 0 }}
-                      transition={{ duration: 0.3, type: "spring", stiffness: 300 }}
+                      initial={{ scale: 0.8, opacity: 0 }}
+                      animate={{ scale: 1, opacity: 1 }}
+                      exit={{ scale: 0.8, opacity: 0 }}
+                      transition={{ duration: 0.2, ease: [0.25, 0.46, 0.45, 0.94] }}
                     >
                       <Check className="h-2.5 w-2.5" />
                     </motion.div>
@@ -146,41 +135,28 @@ const TaskCardComponent = ({ task, onToggleComplete, onEdit, onDelete, onToggleC
                 </AnimatePresence>
               </Button>
               
-              {/* Success pulse animation */}
+              {/* Simple success pulse animation */}
               <AnimatePresence>
                 {isCompleting && (
                   <motion.div
-                    initial={{ scale: 1, opacity: 0.6 }}
-                    animate={{ scale: 2, opacity: 0 }}
+                    initial={{ scale: 1, opacity: 0.5 }}
+                    animate={{ scale: 1.4, opacity: 0 }}
                     exit={{ opacity: 0 }}
-                    transition={{ duration: 0.6, ease: "easeOut" }}
-                    className="absolute inset-0 rounded-full bg-green-400/40 pointer-events-none"
+                    transition={{ duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] }}
+                    className="absolute inset-0 rounded-full bg-green-400/30 pointer-events-none"
                   />
                 )}
               </AnimatePresence>
               
-              {/* Secondary success ripple */}
-              <AnimatePresence>
-                {isCompleting && (
-                  <motion.div
-                    initial={{ scale: 1, opacity: 0.4 }}
-                    animate={{ scale: 1.8, opacity: 0 }}
-                    exit={{ opacity: 0 }}
-                    transition={{ duration: 0.8, ease: "easeOut", delay: 0.1 }}
-                    className="absolute inset-0 rounded-full bg-emerald-300/30 pointer-events-none"
-                  />
-                )}
-              </AnimatePresence>
-              
-              {/* Unmark pulse animation */}
+              {/* Simple unmark pulse animation */}
               <AnimatePresence>
                 {isUncompleting && (
                   <motion.div
-                    initial={{ scale: 1, opacity: 0.6 }}
+                    initial={{ scale: 1, opacity: 0.5 }}
                     animate={{ scale: 1.2, opacity: 0 }}
                     exit={{ opacity: 0 }}
-                    transition={{ duration: 0.4, ease: "easeOut" }}
-                    className="absolute inset-0 rounded-full bg-blue-400/60 pointer-events-none"
+                    transition={{ duration: 0.3, ease: [0.25, 0.46, 0.45, 0.94] }}
+                    className="absolute inset-0 rounded-full bg-blue-400/40 pointer-events-none"
                   />
                 )}
               </AnimatePresence>
