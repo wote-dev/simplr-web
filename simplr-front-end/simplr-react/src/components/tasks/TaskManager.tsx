@@ -363,56 +363,29 @@ export function TaskManager() {
               transition={{ delay: 0.3, duration: 0.4 }}
             >
               {isLoading ? (
-                <div className="flex flex-col items-center justify-center min-h-[60vh] px-4">
+                <div className="flex items-center justify-center min-h-[60vh]">
                   <motion.div
                     initial={{ opacity: 0, scale: 0.8 }}
                     animate={{ opacity: 1, scale: 1 }}
-                    transition={{ duration: 0.3, ease: [0.25, 0.46, 0.45, 0.94] }}
-                    className="text-center"
+                    transition={{ duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] }}
+                    className="flex space-x-2"
                   >
-                    <div className="relative mb-6">
+                    {[0, 1, 2].map((index) => (
                       <motion.div
-                        animate={{ rotate: 360 }}
-                        transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
-                        className="w-12 h-12 mx-auto"
-                      >
-                        <Loader2 className="w-12 h-12 text-primary" />
-                      </motion.div>
-                      <motion.div
-                        initial={{ scale: 0 }}
-                        animate={{ scale: [0, 1.2, 1] }}
-                        transition={{ duration: 1, repeat: Infinity, ease: "easeInOut" }}
-                        className="absolute inset-0 w-12 h-12 mx-auto border-2 border-primary/20 rounded-full"
+                        key={index}
+                        className="w-3 h-3 bg-primary rounded-full"
+                        animate={{
+                          scale: [1, 1.2, 1],
+                          opacity: [0.7, 1, 0.7]
+                        }}
+                        transition={{
+                          duration: 1.2,
+                          repeat: Infinity,
+                          delay: index * 0.2,
+                          ease: "easeInOut"
+                        }}
                       />
-                    </div>
-                    <motion.h3
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: 0.2, duration: 0.3 }}
-                      className="text-lg font-semibold mb-2"
-                    >
-                      Loading your tasks
-                    </motion.h3>
-                    <motion.p
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: 0.3, duration: 0.3 }}
-                      className="text-muted-foreground text-sm max-w-xs"
-                    >
-                      {currentView === 'today' && 'Preparing your tasks for today...'}
-                      {currentView === 'upcoming' && 'Gathering your upcoming tasks...'}
-                      {currentView === 'completed' && 'Loading your completed tasks...'}
-                    </motion.p>
-                    <motion.div
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: [0, 0.5, 0] }}
-                      transition={{ delay: 0.5, duration: 2, repeat: Infinity }}
-                      className="flex justify-center space-x-1 mt-4"
-                    >
-                      <div className="w-2 h-2 bg-primary/40 rounded-full" />
-                      <div className="w-2 h-2 bg-primary/60 rounded-full" />
-                      <div className="w-2 h-2 bg-primary/80 rounded-full" />
-                    </motion.div>
+                    ))}
                   </motion.div>
                 </div>
               ) : viewTasks.length === 0 ? (
