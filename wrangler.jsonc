@@ -1,6 +1,5 @@
 {
   "name": "simplr-web",
-  "main": "worker.js",
   "compatibility_date": "2025-01-07",
   "assets": {
     "directory": "./simplr-front-end/simplr-react/dist"
