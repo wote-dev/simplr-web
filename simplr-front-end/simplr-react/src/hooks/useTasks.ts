@@ -5,6 +5,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { DatabaseService } from '@/lib/database';
 import { supabase } from '@/lib/supabase';
 import type { RealtimeChannel } from '@supabase/supabase-js';
+import { scheduleReminder, cancelReminder } from '@/lib/notifications';
 
 // Helper function to safely map database row to Task
 function mapDatabaseRowToTask(row: Record<string, unknown>): Task {
@@ -16,9 +17,28 @@ function mapDatabaseRowToTask(row: Record<string, unknown>): Task {
     completed: row.completed as boolean,
     checklist: (row.checklist as ChecklistItem[]) || null,
     dueDate: (row.due_date as string) || null,
+    reminderEnabled: (row.reminder_enabled as boolean) ?? false,
+    reminderDateTime: (row.reminder_datetime as string) || null,
+    reminderSent: (row.reminder_sent as boolean) ?? false,
     createdAt: row.created_at as string,
     updatedAt: row.updated_at as string,
   };
+}
+
+// Helper function to handle reminder scheduling
+function handleReminderScheduling(task: Task) {
+  if (task.reminderEnabled && task.reminderDateTime && !task.reminderSent) {
+    const reminderTime = new Date(task.reminderDateTime);
+    if (reminderTime > new Date()) {
+      const timeoutId = scheduleReminder(task);
+      if (timeoutId) {
+        // Store the timeout ID for later cancellation if needed
+        // This could be enhanced with a reminder management system
+      }
+    }
+  }
+  // Note: Canceling reminders would require tracking timeout IDs
+  // This could be enhanced with a proper reminder management system
 }
 
 const INITIAL_TASKS: Task[] = [
@@ -392,6 +412,9 @@ export function useTasks(): UseTasksReturn {
         const newTask = await DatabaseService.createTask(taskData, user.id);
         console.log('Task created in Supabase:', newTask);
         
+        // Schedule reminder if enabled
+        handleReminderScheduling(newTask);
+        
         // Optimistic update
         addOptimisticTask(newTask);
         
@@ -411,6 +434,9 @@ export function useTasks(): UseTasksReturn {
           updatedAt: new Date().toISOString(),
         };
         console.log('Task created locally:', newTask);
+
+        // Schedule reminder if enabled
+        handleReminderScheduling(newTask);
 
         // Optimistic update
         addOptimisticTask(newTask);
@@ -453,6 +479,9 @@ export function useTasks(): UseTasksReturn {
         // Update task in Supabase
         const updatedTask = await DatabaseService.updateTask(id, updates, user.id);
         
+        // Handle reminder scheduling for updated task
+        handleReminderScheduling(updatedTask);
+        
         // Optimistic update
         addOptimisticTask(updatedTask);
 
@@ -473,6 +502,9 @@ export function useTasks(): UseTasksReturn {
           ...updates,
           updatedAt: new Date().toISOString(),
         };
+
+        // Handle reminder scheduling for updated task
+        handleReminderScheduling(updatedTask);
 
         // Optimistic update
         addOptimisticTask(updatedTask);

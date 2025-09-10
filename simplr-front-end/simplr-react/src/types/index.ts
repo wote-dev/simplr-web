@@ -13,6 +13,9 @@ export interface Task {
   completed: boolean;
   checklist: ChecklistItem[] | null;
   dueDate: string | null;
+  reminderEnabled?: boolean;
+  reminderDateTime?: string | null;
+  reminderSent?: boolean;
   createdAt?: string;
   updatedAt?: string;
 }

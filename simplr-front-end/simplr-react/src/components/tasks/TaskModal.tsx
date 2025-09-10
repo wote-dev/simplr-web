@@ -1,10 +1,22 @@
 import { useState, useEffect } from 'react';
+import type { ChangeEvent, KeyboardEvent } from 'react';
 import { Button } from '@/components/ui/button';
 import { DatePicker } from '@/components/ui/date-picker';
-import { X, Plus, Trash2 } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { X, Plus, Trash2, Bell, BellOff } from 'lucide-react';
 import { useToast } from '@/hooks/useToastContext';
 import type { Task, TaskCategory, ChecklistItem } from '@/types';
 import { taskCategories } from '@/hooks/useTasks';
+import { 
+  requestNotificationPermission, 
+  getNotificationPermission, 
+  isNotificationSupported,
+  getDefaultReminderTime,
+  isValidReminderTime 
+} from '@/lib/notifications';
 
 interface TaskModalProps {
   isOpen: boolean;
@@ -21,6 +33,9 @@ export function TaskModal({ isOpen, onClose, onSave, task }: TaskModalProps) {
   const [dueDate, setDueDate] = useState('');
   const [checklist, setChecklist] = useState<ChecklistItem[]>([]);
   const [newChecklistItem, setNewChecklistItem] = useState('');
+  const [reminderEnabled, setReminderEnabled] = useState(false);
+  const [reminderDateTime, setReminderDateTime] = useState('');
+  const [permissionRequested, setPermissionRequested] = useState(false);
 
   // Update form state when task prop changes
   useEffect(() => {
@@ -30,6 +45,8 @@ export function TaskModal({ isOpen, onClose, onSave, task }: TaskModalProps) {
       setCategory(task.category || 'PERSONAL');
       setDueDate(task.dueDate || '');
       setChecklist(task.checklist || []);
+      setReminderEnabled(task.reminderEnabled || false);
+      setReminderDateTime(task.reminderDateTime || '');
     } else {
       // Reset form for new task
       setTitle('');
@@ -37,6 +54,8 @@ export function TaskModal({ isOpen, onClose, onSave, task }: TaskModalProps) {
       setCategory('PERSONAL');
       setDueDate('');
       setChecklist([]);
+      setReminderEnabled(false);
+      setReminderDateTime('');
     }
     setNewChecklistItem('');
   }, [task]);
@@ -52,7 +71,22 @@ export function TaskModal({ isOpen, onClose, onSave, task }: TaskModalProps) {
   };
 
   const handleSave = async () => {
-    if (!title.trim()) return;
+    if (!title.trim()) {
+      showToast('Please enter a task title', 'error');
+      return;
+    }
+
+    // Validate reminder settings
+    if (reminderEnabled) {
+      if (!reminderDateTime) {
+        showToast('Please set a reminder date and time', 'error');
+        return;
+      }
+      if (!isValidReminderTime(reminderDateTime)) {
+        showToast('Reminder time must be in the future', 'error');
+        return;
+      }
+    }
 
     try {
       await onSave({
@@ -62,6 +96,9 @@ export function TaskModal({ isOpen, onClose, onSave, task }: TaskModalProps) {
         dueDate,
         checklist,
         completed: task?.completed || false,
+        reminderEnabled,
+        reminderDateTime: reminderEnabled ? reminderDateTime : null,
+        reminderSent: false,
       });
 
       showToast(
@@ -93,11 +130,50 @@ export function TaskModal({ isOpen, onClose, onSave, task }: TaskModalProps) {
     setNewChecklistItem('');
   };
 
+  // Handle reminder toggle
+  const handleReminderToggle = async () => {
+    if (!reminderEnabled) {
+      // Enabling reminder - check permissions
+      if (!isNotificationSupported()) {
+        showToast('Notifications are not supported in this browser', 'error');
+        return;
+      }
+
+      const permission = getNotificationPermission();
+      if (permission === 'denied') {
+        showToast('Notifications are blocked. Please enable them in your browser settings.', 'error');
+        return;
+      }
+
+      if (permission === 'default' && !permissionRequested) {
+        try {
+          const newPermission = await requestNotificationPermission();
+          setPermissionRequested(true);
+          if (newPermission !== 'granted') {
+            showToast('Notification permission is required for reminders', 'error');
+            return;
+          }
+        } catch (error) {
+          showToast('Failed to request notification permission', 'error');
+          return;
+        }
+      }
+
+      // Set default reminder time if not set
+      if (!reminderDateTime) {
+        const defaultTime = getDefaultReminderTime({ dueDate } as Task);
+        setReminderDateTime(defaultTime);
+      }
+    }
+
+    setReminderEnabled(!reminderEnabled);
+  };
+
   // Keyboard event handlers
   useEffect(() => {
     if (!isOpen) return;
 
-    const handleKeyDown = (event: KeyboardEvent) => {
+    const handleKeyDown = (event: globalThis.KeyboardEvent) => {
       // ESC key to dismiss modal
       if (event.key === 'Escape') {
         event.preventDefault();
@@ -171,127 +247,176 @@ export function TaskModal({ isOpen, onClose, onSave, task }: TaskModalProps) {
             </p>
           </div>
           
-          <div className="space-y-5">
+          <div className="space-y-4">
             {/* Task Details Section */}
-            <fieldset className="space-y-4 p-3 bg-muted/20 rounded-lg border border-border/30">
-              <legend className="mb-2 px-2">
-                <h4 className="text-sm font-semibold text-foreground mb-0.5">Task Details</h4>
-                <p className="text-xs text-muted-foreground/80">Give your task a clear title and optional description</p>
-              </legend>
-              
-              <div className="space-y-1.5">
-                <label className="text-xs font-medium text-foreground">Title</label>
-                <input
-                  type="text"
-                  value={title}
-                  onChange={(e) => setTitle(e.target.value)}
-                  placeholder="e.g., Complete quarterly report"
-                  className="w-full px-3 py-2.5 border-2 border-input rounded-lg bg-background text-foreground placeholder:text-muted-foreground/70 focus:outline-none focus:ring-2 focus:ring-ring focus:border-ring transition-colors shadow-sm"
-                  autoFocus
-                />
-              </div>
-              
-              <div className="space-y-1.5">
-                <label className="text-xs font-medium text-foreground">Description</label>
-                <textarea
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                  placeholder="Add context, requirements, or notes..."
-                  rows={3}
-                  className="w-full px-3 py-2.5 border-2 border-input rounded-lg bg-background text-foreground placeholder:text-muted-foreground/70 focus:outline-none focus:ring-2 focus:ring-ring focus:border-ring transition-colors resize-none shadow-sm"
-                />
-              </div>
-            </fieldset>
+            <Card>
+              <CardHeader>
+                <CardTitle>Task Details</CardTitle>
+                <CardDescription>Give your task a clear title and optional description</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="title">Title</Label>
+                  <Input
+                    id="title"
+                    value={title}
+                    onChange={(e: ChangeEvent<HTMLInputElement>) => setTitle(e.target.value)}
+                    placeholder="e.g., Complete quarterly report"
+                    autoFocus
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="description">Description</Label>
+                  <Textarea
+                    id="description"
+                    value={description}
+                    onChange={(e: ChangeEvent<HTMLTextAreaElement>) => setDescription(e.target.value)}
+                    placeholder="Add context, requirements, or notes..."
+                    rows={3}
+                  />
+                </div>
+              </CardContent>
+            </Card>
 
             {/* Due Date Section */}
-            <fieldset className="space-y-3 p-3 bg-muted/20 rounded-lg border border-border/30">
-              <legend className="mb-2 px-2">
-                <h4 className="text-sm font-semibold text-foreground mb-0.5">Due Date</h4>
-                <p className="text-xs text-muted-foreground/80">Set when this task should be completed</p>
-              </legend>
-              
-              <div className="space-y-1.5">
-                <label className="text-xs font-medium text-foreground">Due Date</label>
+            <Card>
+              <CardHeader>
+                <CardTitle>Due Date</CardTitle>
+                <CardDescription>Set when this task should be completed</CardDescription>
+              </CardHeader>
+              <CardContent>
                 <DatePicker
                   date={dueDate ? new Date(dueDate) : undefined}
                   onDateChange={(date) => setDueDate(date ? date.toISOString() : '')}
                   placeholder="Select due date"
                 />
-              </div>
-            </fieldset>
+              </CardContent>
+            </Card>
+
+            {/* Reminder Section */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Reminder</CardTitle>
+                <CardDescription>Get notified about your task at a specific time</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-2">
+                    {reminderEnabled ? (
+                      <Bell className="h-4 w-4 text-primary" />
+                    ) : (
+                      <BellOff className="h-4 w-4 text-muted-foreground" />
+                    )}
+                    <Label htmlFor="reminder-toggle" className="text-sm font-medium">
+                      Enable Reminder
+                    </Label>
+                  </div>
+                  <Button
+                    id="reminder-toggle"
+                    type="button"
+                    variant={reminderEnabled ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={handleReminderToggle}
+                    className="h-8"
+                  >
+                    {reminderEnabled ? 'On' : 'Off'}
+                  </Button>
+                </div>
+                
+                {reminderEnabled && (
+                  <div className="space-y-2">
+                    <Label htmlFor="reminder-datetime">Reminder Date & Time</Label>
+                    <Input
+                      id="reminder-datetime"
+                      type="datetime-local"
+                      value={reminderDateTime}
+                      onChange={(e: ChangeEvent<HTMLInputElement>) => setReminderDateTime(e.target.value)}
+                      className="w-full"
+                      min={new Date().toISOString().slice(0, 16)}
+                    />
+                    {reminderDateTime && !isValidReminderTime(reminderDateTime) && (
+                      <p className="text-sm text-destructive">
+                        Reminder time must be in the future
+                      </p>
+                    )}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
 
             {/* Category Section */}
-            <fieldset className="space-y-3 p-3 bg-muted/20 rounded-lg border border-border/30">
-              <legend className="mb-2 px-2">
-                <h4 className="text-sm font-semibold text-foreground mb-0.5">Category</h4>
-                <p className="text-xs text-muted-foreground/80">Select a category to organize your task</p>
-              </legend>
-              
-              <div className="grid grid-cols-2 gap-2">
-                {Object.entries(taskCategories).map(([key, config]) => (
-                  <Button
-                    key={key}
-                    variant={category === key ? 'default' : 'outline'}
-                    size="sm"
-                    onClick={() => setCategory(key as TaskCategory)}
-                    className="justify-start"
-                  >
-                    <div className={`w-3 h-3 rounded-full bg-${config.color}-500 mr-2`} />
-                    {config.displayName}
-                  </Button>
-                ))}
-              </div>
-            </fieldset>
-
-            {/* Checklist Section */}
-            <fieldset className="space-y-3 p-3 bg-muted/20 rounded-lg border border-border/30">
-              <legend className="mb-2 px-2">
-                <h4 className="text-sm font-semibold text-foreground mb-0.5">Check List</h4>
-                <p className="text-xs text-muted-foreground/80">Break your task into smaller, manageable steps</p>
-              </legend>
-              
-              {/* Checklist items */}
-              {checklist.length > 0 && (
-                <div className="space-y-2 max-h-32 overflow-y-auto mb-3">
-                  {checklist.map((item) => (
-                    <div key={item.id} className="flex items-center space-x-2 p-2.5 border-2 border-border/40 rounded-lg bg-background/50 hover:bg-muted/30 transition-colors">
-                      <input
-                        type="checkbox"
-                        checked={item.done}
-                        onChange={() => toggleChecklistItem(item.id)}
-                        className="rounded border-gray-300"
-                      />
-                      <span className={`flex-1 text-sm ${item.done ? 'line-through text-muted-foreground' : ''}`}>
-                        {item.text}
-                      </span>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => removeChecklistItem(item.id)}
-                        className="h-6 w-6"
-                      >
-                        <Trash2 className="h-3 w-3" />
-                      </Button>
-                    </div>
+            <Card>
+              <CardHeader>
+                <CardTitle>Category</CardTitle>
+                <CardDescription>Select a category to organize your task</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-2 gap-2">
+                  {Object.entries(taskCategories).map(([key, config]) => (
+                    <Button
+                      key={key}
+                      variant={category === key ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={() => setCategory(key as TaskCategory)}
+                      className="justify-start"
+                    >
+                      <div className={`w-3 h-3 rounded-full bg-${config.color}-500 mr-2`} />
+                      {config.displayName}
+                    </Button>
                   ))}
                 </div>
-              )}
-              
-              {/* Add new checklist item */}
-              <div className="flex space-x-2">
-                <input
-                  type="text"
-                  value={newChecklistItem}
-                  onChange={(e) => setNewChecklistItem(e.target.value)}
-                  placeholder="Add a checklist item..."
-                  className="flex-1 px-3 py-2.5 border-2 border-input rounded-lg bg-background text-foreground placeholder:text-muted-foreground/70 focus:outline-none focus:ring-2 focus:ring-ring focus:border-ring transition-colors shadow-sm"
-                  onKeyPress={(e) => e.key === 'Enter' && addChecklistItem()}
-                />
-                <Button size="sm" onClick={addChecklistItem} aria-label="Add checklist item">
-                  <Plus className="h-4 w-4" />
-                </Button>
-              </div>
-            </fieldset>
+              </CardContent>
+            </Card>
+
+            {/* Checklist Section */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Checklist</CardTitle>
+                <CardDescription>Break your task into smaller, manageable steps</CardDescription>
+              </CardHeader>
+              <CardContent>
+                {/* Checklist items */}
+                {checklist.length > 0 && (
+                  <div className="space-y-2 max-h-32 overflow-y-auto mb-3">
+                    {checklist.map((item) => (
+                      <div key={item.id} className="flex items-center space-x-2 p-2.5 border-2 border-border/40 rounded-lg bg-background/50 hover:bg-muted/30 transition-colors">
+                        <input
+                          type="checkbox"
+                          checked={item.done}
+                          onChange={() => toggleChecklistItem(item.id)}
+                          className="rounded border-gray-300"
+                        />
+                        <span className={`flex-1 text-sm ${item.done ? 'line-through text-muted-foreground' : ''}`}>
+                          {item.text}
+                        </span>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => removeChecklistItem(item.id)}
+                          className="h-6 w-6"
+                        >
+                          <Trash2 className="h-3 w-3" />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                
+                {/* Add new checklist item */}
+                <div className="flex space-x-2">
+                  <Input
+                    type="text"
+                    value={newChecklistItem}
+                    onChange={(e: ChangeEvent<HTMLInputElement>) => setNewChecklistItem(e.target.value)}
+                    placeholder="Add a checklist item..."
+                    onKeyPress={(e: KeyboardEvent<HTMLInputElement>) => e.key === 'Enter' && addChecklistItem()}
+                  />
+                  <Button size="sm" onClick={addChecklistItem} aria-label="Add checklist item">
+                    <Plus className="h-4 w-4" />
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
           </div>
         </div>
       </div>

@@ -11,6 +11,9 @@ export interface DatabaseTask {
   completed: boolean;
   checklist?: ChecklistItem[] | null;
   due_date?: string | null;
+  reminder_enabled?: boolean;
+  reminder_datetime?: string | null;
+  reminder_sent?: boolean;
   created_at: string;
   updated_at: string;
 }
@@ -34,6 +37,9 @@ function mapDatabaseTaskToTask(dbTask: DatabaseTask): Task {
     completed: dbTask.completed,
     checklist: dbTask.checklist ?? null,
     dueDate: dbTask.due_date ?? null,
+    reminderEnabled: dbTask.reminder_enabled ?? false,
+    reminderDateTime: dbTask.reminder_datetime ?? null,
+    reminderSent: dbTask.reminder_sent ?? false,
     createdAt: dbTask.created_at,
     updatedAt: dbTask.updated_at,
   };
@@ -49,6 +55,9 @@ function mapTaskToDatabaseTask(task: Omit<Task, 'id' | 'createdAt' | 'updatedAt'
     completed: task.completed,
     checklist: task.checklist,
     due_date: task.dueDate && task.dueDate.trim() !== '' ? task.dueDate : null,
+    reminder_enabled: task.reminderEnabled ?? false,
+    reminder_datetime: task.reminderDateTime && task.reminderDateTime.trim() !== '' ? task.reminderDateTime : null,
+    reminder_sent: task.reminderSent ?? false,
   };
 }
 
@@ -169,6 +178,9 @@ export class DatabaseService {
           ...(updates.completed !== undefined && { completed: updates.completed }),
           ...(updates.checklist !== undefined && { checklist: updates.checklist }),
           ...(updates.dueDate !== undefined && { due_date: updates.dueDate && updates.dueDate.trim() !== '' ? updates.dueDate : null }),
+          ...(updates.reminderEnabled !== undefined && { reminder_enabled: updates.reminderEnabled }),
+          ...(updates.reminderDateTime !== undefined && { reminder_datetime: updates.reminderDateTime && updates.reminderDateTime.trim() !== '' ? updates.reminderDateTime : null }),
+          ...(updates.reminderSent !== undefined && { reminder_sent: updates.reminderSent }),
         })
         .eq('id', taskId)
         .eq('user_id', userId)

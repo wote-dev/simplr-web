@@ -2,7 +2,7 @@ import { useState, memo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Check, Edit, Trash2, Calendar, Clock, MoreVertical } from 'lucide-react';
+import { Check, Edit, Trash2, Calendar, Clock, MoreVertical, Bell } from 'lucide-react';
 import type { Task } from '@/types';
 import { taskCategories, getTaskProgress, isTaskOverdue } from '@/hooks/useTasks';
 
@@ -192,20 +192,31 @@ const TaskCardComponent = ({ task, onToggleComplete, onEdit, onDelete, onToggleC
                   </div>
                   
                   {/* Due Date */}
-                  {task.dueDate && (
-                    <div className={`flex items-center gap-1.5 ${
-                      overdue ? 'text-red-600 dark:text-red-400' : 'text-muted-foreground'
-                    }`}>
-                      {overdue ? (
-                        <Clock className="h-4 w-4" />
-                      ) : (
-                        <Calendar className="h-4 w-4" />
-                      )}
-                      <span className="text-sm font-medium">
-                        {formatDate(task.dueDate)}
-                      </span>
-                    </div>
-                  )}
+                  <div className="flex items-center gap-3">
+                    {task.dueDate && (
+                      <div className={`flex items-center gap-1.5 ${
+                        overdue ? 'text-red-600 dark:text-red-400' : 'text-muted-foreground'
+                      }`}>
+                        {overdue ? (
+                          <Clock className="h-4 w-4" />
+                        ) : (
+                          <Calendar className="h-4 w-4" />
+                        )}
+                        <span className="text-sm font-medium">
+                          {formatDate(task.dueDate)}
+                        </span>
+                      </div>
+                    )}
+                    
+                    {task.reminderEnabled && (
+                      <div className="flex items-center gap-1.5 text-primary">
+                        <Bell className="h-4 w-4" />
+                        <span className="text-sm font-medium">
+                          Reminder
+                        </span>
+                      </div>
+                    )}
+                  </div>
                 </div>
                 
                 {/* Progress */}
@@ -348,6 +359,9 @@ export const TaskCard = memo(TaskCardComponent, (prevProps, nextProps) => {
     prevProps.task.description === nextProps.task.description &&
     prevProps.task.dueDate === nextProps.task.dueDate &&
     prevProps.task.category === nextProps.task.category &&
+    prevProps.task.reminderEnabled === nextProps.task.reminderEnabled &&
+    prevProps.task.reminderDateTime === nextProps.task.reminderDateTime &&
+    prevProps.task.reminderSent === nextProps.task.reminderSent &&
     checklistEqual(prevProps.task.checklist, nextProps.task.checklist)
   );
 });
