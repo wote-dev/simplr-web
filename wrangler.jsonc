@@ -7,13 +7,5 @@
   "build": {
     "command": "cd simplr-front-end/simplr-react && npm install && npm run build"
   },
-  "send_metrics": false,
-  "upload": {
-    "rules": [
-      {
-        "type": "ESModule",
-        "globs": ["**/*.js"]
-      }
-    ]
-  }
+  "send_metrics": false
 }
