@@ -1,3 +1,5 @@
 # Cloudflare Pages SPA routing
-# Serve index.html for all routes while preserving the URL
-/*    /index.html   200
+# Serve index.html for client-side routes while preserving the URL
+# Exclude static assets and files
+/assets/*  /assets/:splat  200
+/*         /index.html     200
