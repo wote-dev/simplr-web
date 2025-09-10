@@ -74,7 +74,7 @@ export function LoginOverlay({ className }: LoginOverlayProps) {
           </div>
           <div>
             <CardTitle className="text-2xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
-              Welcome to Simplr
+              Welcome to Simplr Web
             </CardTitle>
             <CardDescription className="text-muted-foreground mt-2">
               Your simple, powerful task manager
