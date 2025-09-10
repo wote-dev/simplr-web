@@ -1,0 +1,7 @@
+name = "simplr-web"
+compatibility_date = "2025-01-07"
+
+[pages]
+[pages.build]
+command = "cd simplr-front-end/simplr-react && npm install && npm run build"
+directory = "./simplr-front-end/simplr-react/dist"
