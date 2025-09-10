@@ -243,7 +243,7 @@ export function TaskManager() {
         </div>
       </header>
 
-      <main className="w-full max-w-6xl mx-auto px-4 py-6 flex-1 flex flex-col pb-24 sm:pb-6">
+      <main className="w-full max-w-6xl mx-auto px-4 py-6 flex-1 flex flex-col pb-24 sm:pb-24">
         <AnimatePresence mode="wait">
           <motion.div
             key={currentView}
