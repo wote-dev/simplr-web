@@ -1,0 +1,10 @@
+{
+  "name": "simplr-web",
+  "compatibility_date": "2025-01-07",
+  "assets": {
+    "directory": "./simplr-front-end/simplr-react/dist"
+  },
+  "build": {
+    "command": "cd simplr-front-end/simplr-react && npm install && npm run build"
+  }
+}
