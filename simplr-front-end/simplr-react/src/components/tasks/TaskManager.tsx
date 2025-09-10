@@ -590,7 +590,10 @@ export function TaskManager() {
 
       <TaskModal
         isOpen={isTaskModalOpen}
-        onClose={() => setIsTaskModalOpen(false)}
+        onClose={() => {
+          setIsTaskModalOpen(false);
+          setEditingTask(undefined);
+        }}
         onSave={handleSaveTask}
         task={editingTask}
       />

@@ -67,6 +67,8 @@ export function TaskModal({ isOpen, onClose, onSave, task }: TaskModalProps) {
     setDueDate('');
     setChecklist([]);
     setNewChecklistItem('');
+    setReminderEnabled(false);
+    setReminderDateTime('');
     onClose();
   };
 
