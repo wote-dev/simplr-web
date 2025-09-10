@@ -1,4 +1,1 @@
-# SPA fallback for Cloudflare Pages
-# This ensures that all routes (like /privacy) are handled by React Router
-# Redirect all requests that don't match existing files to index.html
-/*    /index.html   200!
+/* /index.html 200
