@@ -5,7 +5,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { DatabaseService } from '@/lib/database';
 import { supabase } from '@/lib/supabase';
 import type { RealtimeChannel } from '@supabase/supabase-js';
-import { scheduleReminder, cancelReminder } from '@/lib/notifications';
+import { scheduleReminder } from '@/lib/notifications';
 
 // Helper function to safely map database row to Task
 function mapDatabaseRowToTask(row: Record<string, unknown>): Task {
