@@ -6,6 +6,5 @@
   },
   "build": {
     "command": "cd simplr-front-end/simplr-react && npm install && npm run build"
-  },
-  "send_metrics": false
+  }
 }

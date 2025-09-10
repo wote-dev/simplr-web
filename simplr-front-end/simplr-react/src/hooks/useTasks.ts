@@ -417,15 +417,20 @@ export function useTasks(): UseTasksReturn {
         
         // Update tasks state immediately - the real-time subscription will handle duplicates
         startTransition(() => {
-            setTasks(prev => {
-              // Check if task already exists to avoid duplicates
-              const exists = prev.some(t => t.id === newTask.id);
-              if (!exists) {
-                return [newTask, ...prev]; // Add to beginning for better UX
-              }
-              return prev;
-            });
+          setTasks(prev => {
+            console.log('Previous tasks before adding:', prev.length);
+            // Check if task already exists to avoid duplicates
+            const exists = prev.some(t => t.id === newTask.id);
+            if (!exists) {
+              console.log('Adding new task to state:', newTask);
+              const updatedTasks = [newTask, ...prev]; // Add to beginning for better UX
+              console.log('Tasks after adding new task:', updatedTasks.length, updatedTasks);
+              return updatedTasks;
+            }
+            console.log('Task already exists in state, skipping:', newTask.id);
+            return prev;
           });
+        });
       } else {
         console.log('Creating task locally...');
         // Create task locally
@@ -442,8 +447,14 @@ export function useTasks(): UseTasksReturn {
 
         // Update tasks state immediately
         startTransition(() => {
-            setTasks(prev => [newTask, ...prev]); // Add to beginning for better UX
+          setTasks(prev => {
+            console.log('Previous tasks before adding (local):', prev.length);
+            console.log('Adding new task to local state:', newTask);
+            const updatedTasks = [newTask, ...prev]; // Add to beginning for better UX
+            console.log('Tasks after adding new task (local):', updatedTasks.length, updatedTasks);
+            return updatedTasks;
           });
+        });
       }
     } catch (err) {
       console.error('Failed to add task:', err);
@@ -677,9 +688,11 @@ export function useTasks(): UseTasksReturn {
     const tomorrow = new Date(today);
     tomorrow.setDate(tomorrow.getDate() + 1);
 
+    console.log('getTasksForView called:', { view, totalTasks: optimisticTasks.length, optimisticTasks });
+
     switch (view) {
       case 'today':
-        return optimisticTasks.filter(task => {
+        const todayTasks = optimisticTasks.filter(task => {
           // Don't show completed tasks in today view
           if (task.completed) return false;
           
@@ -690,9 +703,11 @@ export function useTasks(): UseTasksReturn {
           // Include today's tasks and overdue tasks
           return dueDate <= today;
         });
+        console.log('Today tasks filtered:', todayTasks);
+        return todayTasks;
       
       case 'upcoming':
-        return optimisticTasks.filter(task => {
+        const upcomingTasks = optimisticTasks.filter(task => {
           // Don't show completed tasks in upcoming view
           if (task.completed) return false;
           
@@ -702,12 +717,18 @@ export function useTasks(): UseTasksReturn {
           const dueDate = new Date(task.dueDate);
           return dueDate >= tomorrow;
         });
+        console.log('Upcoming tasks filtered:', upcomingTasks);
+        return upcomingTasks;
       
       case 'completed':
-        return optimisticTasks.filter(task => task.completed);
+        const completedTasks = optimisticTasks.filter(task => task.completed);
+        console.log('Completed tasks filtered:', completedTasks);
+        return completedTasks;
       
       default:
-        return optimisticTasks.filter(task => !task.completed);
+        const defaultTasks = optimisticTasks.filter(task => !task.completed);
+        console.log('Default tasks filtered:', defaultTasks);
+        return defaultTasks;
     }
   }, [optimisticTasks, currentTime]);
 
