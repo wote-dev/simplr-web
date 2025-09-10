@@ -156,14 +156,30 @@ export class DatabaseService {
         .single();
 
       console.log('Supabase insert result:', { data, error });
-      if (error) throw error;
+      if (error) {
+        console.error('Supabase error details:', {
+          message: error.message,
+          details: error.details,
+          hint: error.hint,
+          code: error.code
+        });
+        throw new Error(`Database error: ${error.message}${error.details ? ` - ${error.details}` : ''}${error.hint ? ` (${error.hint})` : ''}`);
+      }
+
+      if (!data) {
+        throw new Error('No data returned from database insert');
+      }
 
       const mappedTask = mapDatabaseTaskToTask(data);
       console.log('Mapped task result:', mappedTask);
       return mappedTask;
     } catch (error) {
       console.error('Error creating task:', error);
-      throw new Error('Failed to create task');
+      // Re-throw the original error with more context
+      if (error instanceof Error) {
+        throw error;
+      }
+      throw new Error(`Failed to create task: ${String(error)}`);
     }
   }
 
