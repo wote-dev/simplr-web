@@ -5,7 +5,7 @@ import { DatabaseService } from '@/lib/database';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
-import { User, Moon, Sun, Monitor, Trash2, Download, Upload, Database, Palette, Cloud, RefreshCw, Info } from 'lucide-react';
+import { Moon, Sun, Monitor, Trash2, Download, Upload, Cloud, RefreshCw } from 'lucide-react';
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { cn } from '@/lib/utils';

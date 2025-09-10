@@ -4,7 +4,6 @@ import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { SettingsBody } from './SettingsBody';
-import type { Theme } from '@/types';
 
 type SettingsSection = 'account' | 'appearance' | 'data' | 'about';
 
