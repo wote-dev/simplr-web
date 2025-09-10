@@ -19,14 +19,6 @@ function AppContent() {
     const hashParams = new URLSearchParams(window.location.hash.substring(1));
     const isCallback = hashParams.get('access_token') || hashParams.get('error') || hashParams.get('type') === 'recovery';
     setIsAuthCallback(!!isCallback);
-
-    // Handle SPA routing redirect from 404.html
-    const redirectPath = sessionStorage.getItem('redirectPath');
-    if (redirectPath && redirectPath !== window.location.pathname) {
-      sessionStorage.removeItem('redirectPath');
-      // Use window.location to navigate to preserve the full URL
-      window.location.href = redirectPath;
-    }
   }, []);
 
   // Show auth callback handler if we're in callback flow

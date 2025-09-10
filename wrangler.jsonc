@@ -6,6 +6,5 @@
   },
   "build": {
     "command": "cd simplr-front-end/simplr-react && npm install && npm run build"
-  },
-  "main": "./_worker.js"
+  }
 }
