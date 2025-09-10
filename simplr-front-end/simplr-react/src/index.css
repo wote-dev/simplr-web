@@ -107,6 +107,20 @@
     scroll-behavior: smooth;
   }
 
+  /* Mobile performance optimizations */
+  * {
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
+  }
+
+  /* Hardware acceleration for better mobile performance */
+  .motion-safe {
+    will-change: transform;
+    transform: translateZ(0);
+    backface-visibility: hidden;
+    perspective: 1000px;
+  }
+
   /* Focus styles for accessibility */
   *:focus-visible {
     @apply outline-none ring-2 ring-ring ring-offset-2;
@@ -166,22 +180,22 @@
   @keyframes tabSlideIn {
     from {
       opacity: 0;
-      transform: translateY(8px);
+      transform: translate3d(0, 8px, 0);
     }
     to {
       opacity: 1;
-      transform: translateY(0);
+      transform: translate3d(0, 0, 0);
     }
   }
 
   @keyframes tabSlideOut {
     from {
       opacity: 1;
-      transform: translateY(0);
+      transform: translate3d(0, 0, 0);
     }
     to {
       opacity: 0;
-      transform: translateY(-8px);
+      transform: translate3d(0, -8px, 0);
     }
   }
 
@@ -228,11 +242,11 @@
   @keyframes contentFadeIn {
     from {
       opacity: 0;
-      transform: translateY(6px);
+      transform: translate3d(0, 6px, 0);
     }
     to {
       opacity: 1;
-      transform: translateY(0);
+      transform: translate3d(0, 0, 0);
     }
   }
 
@@ -297,5 +311,47 @@
     color: hsl(var(--primary));
     border-color: hsl(var(--primary) / 0.3);
     font-weight: 600;
+  }
+
+  /* Mobile-specific animation optimizations */
+  @media (max-width: 768px) {
+    /* Reduce motion for better mobile performance */
+    .tab-transition-enter,
+    .tab-transition-exit,
+    .content-fade-in {
+      will-change: transform, opacity;
+      transform: translateZ(0);
+    }
+
+    /* Optimize animations for mobile */
+    .motion-reduce-mobile {
+      animation-duration: 0.1s !important;
+      transition-duration: 0.1s !important;
+    }
+
+    /* Hardware acceleration for mobile animations */
+    [data-motion="true"] {
+      will-change: transform, opacity;
+      transform: translateZ(0);
+      backface-visibility: hidden;
+    }
+
+    /* Smooth scrolling optimization for mobile */
+    .mobile-scroll-smooth {
+      -webkit-overflow-scrolling: touch;
+      scroll-behavior: smooth;
+    }
+  }
+
+  /* Respect user's motion preferences */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
   }
 }

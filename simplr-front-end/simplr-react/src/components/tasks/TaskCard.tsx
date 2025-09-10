@@ -128,6 +128,8 @@ const TaskCardComponent = ({ task, onToggleComplete, onEdit, onDelete, onToggleC
                       animate={{ scale: 1, opacity: 1 }}
                       exit={{ scale: 0.8, opacity: 0 }}
                       transition={{ duration: 0.2, ease: [0.25, 0.46, 0.45, 0.94] }}
+                      style={{ willChange: 'transform, opacity' }}
+                      className="motion-safe"
                     >
                       <Check className="h-2.5 w-2.5" />
                     </motion.div>
@@ -143,7 +145,8 @@ const TaskCardComponent = ({ task, onToggleComplete, onEdit, onDelete, onToggleC
                     animate={{ scale: 1.4, opacity: 0 }}
                     exit={{ opacity: 0 }}
                     transition={{ duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] }}
-                    className="absolute inset-0 rounded-full bg-green-400/30 pointer-events-none"
+                    className="absolute inset-0 rounded-full bg-green-400/30 pointer-events-none motion-safe"
+                    style={{ willChange: 'transform, opacity' }}
                   />
                 )}
               </AnimatePresence>
@@ -156,7 +159,8 @@ const TaskCardComponent = ({ task, onToggleComplete, onEdit, onDelete, onToggleC
                     animate={{ scale: 1.2, opacity: 0 }}
                     exit={{ opacity: 0 }}
                     transition={{ duration: 0.3, ease: [0.25, 0.46, 0.45, 0.94] }}
-                    className="absolute inset-0 rounded-full bg-blue-400/40 pointer-events-none"
+                    className="absolute inset-0 rounded-full bg-blue-400/40 pointer-events-none motion-safe"
+                    style={{ willChange: 'transform, opacity' }}
                   />
                 )}
               </AnimatePresence>

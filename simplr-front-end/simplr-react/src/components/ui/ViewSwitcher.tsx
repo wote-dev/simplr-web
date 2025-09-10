@@ -27,8 +27,9 @@ export function ViewSwitcher({ value, onValueChange }: ViewSwitcherProps) {
           {value === option.id && (
             <motion.div
               layoutId="view-switcher-active"
-              className="absolute inset-0 rounded-full bg-background shadow-sm"
+              className="absolute inset-0 rounded-full bg-background shadow-sm motion-safe"
               transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+              style={{ willChange: 'transform' }}
             />
           )}
           <div className="relative z-10 flex items-center">

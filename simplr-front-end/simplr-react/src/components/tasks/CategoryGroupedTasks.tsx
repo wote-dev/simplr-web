@@ -60,11 +60,12 @@ export function CategoryGroupedTasks({
           >
             {/* Category Header */}
             <motion.button 
-              className="w-full flex items-center gap-3 px-4 py-3 text-left"
+              className="w-full flex items-center gap-3 px-4 py-3 text-left motion-safe"
               onClick={() => toggleCategory(category)}
               whileHover={{ backgroundColor: 'rgba(var(--accent), 0.03)' }}
               whileTap={{ scale: 0.998 }}
               transition={{ duration: 0.15, ease: [0.25, 0.46, 0.45, 0.94] }}
+              style={{ willChange: 'transform' }}
             >
               <div className={`w-3 h-3 rounded-full bg-${categoryConfig.color}-500 flex-shrink-0`} />
               <h3 className="text-lg font-semibold text-foreground">
@@ -77,6 +78,8 @@ export function CategoryGroupedTasks({
               <motion.div
                 animate={{ rotate: isExpanded ? 180 : 0 }}
                 transition={{ duration: 0.2, ease: [0.25, 0.46, 0.45, 0.94] }}
+                style={{ willChange: 'transform' }}
+                className="motion-safe"
               >
                 <ChevronDown className="w-5 h-5 text-muted-foreground" />
               </motion.div>
@@ -103,13 +106,16 @@ export function CategoryGroupedTasks({
                       opacity: { duration: 0.15, ease: [0.25, 0.46, 0.45, 0.94] }
                     }
                   }}
+                  style={{ willChange: 'height, opacity' }}
+                  className="motion-safe"
                 >
                   <motion.div 
-                    className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3 p-4 pt-0"
+                    className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3 p-4 pt-0 motion-safe"
                     initial={{ y: -10 }}
                     animate={{ y: 0 }}
                     exit={{ y: -5 }}
                     transition={{ duration: 0.2, ease: [0.25, 0.46, 0.45, 0.94] }}
+                    style={{ willChange: 'transform' }}
                   >
                     {categoryTasks.map((task, taskIndex) => (
                       <motion.div
@@ -122,6 +128,8 @@ export function CategoryGroupedTasks({
                           duration: 0.18,
                           ease: [0.25, 0.46, 0.45, 0.94]
                         }}
+                        style={{ willChange: 'transform, opacity' }}
+                        className="motion-safe"
                       >
                         <TaskCard
                           task={task}

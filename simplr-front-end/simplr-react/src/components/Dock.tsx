@@ -69,14 +69,15 @@ function DockItem({
       ref={ref}
       style={{
         width: size,
-        height: size
+        height: size,
+        willChange: 'width, height'
       }}
       onHoverStart={() => isHovered.set(1)}
       onHoverEnd={() => isHovered.set(0)}
       onFocus={() => isHovered.set(1)}
       onBlur={() => isHovered.set(0)}
       onClick={onClick}
-      className={`relative inline-flex items-center justify-center rounded-full bg-background border-border border-2 shadow-md ${className}`}
+      className={`relative inline-flex items-center justify-center rounded-full bg-background border-border border-2 shadow-md motion-safe ${className}`}
       tabIndex={0}
       role="button"
       aria-haspopup="true"

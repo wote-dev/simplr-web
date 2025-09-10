@@ -311,30 +311,36 @@ export function TaskManager() {
               duration: 0.15, 
               ease: [0.25, 0.46, 0.45, 0.94]
             }}
-            className="flex-1 flex flex-col"
+            style={{ willChange: 'transform, opacity' }}
+            className="flex-1 flex flex-col motion-safe"
+            data-motion="true"
           >
             {(isLoading || viewTasks.length > 0) && (
               <motion.div 
-                className="mb-6"
+                className="mb-6 motion-safe"
                 initial={{ opacity: 0, y: 6 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.05, duration: 0.2, ease: [0.25, 0.46, 0.45, 0.94] }}
+                style={{ willChange: 'transform, opacity' }}
+                data-motion="true"
               >
                 <div className="flex flex-col space-y-4 mb-4 sm:flex-row sm:items-end sm:justify-between sm:space-y-0">
                   <div>
                     <motion.h2 
-                      className="text-2xl font-bold"
+                      className="text-2xl font-bold motion-safe"
                       initial={{ opacity: 0, y: 3 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: 0.08, duration: 0.18, ease: [0.25, 0.46, 0.45, 0.94] }}
+                      style={{ willChange: 'transform, opacity' }}
                     >
                       {getViewTitle()}
                     </motion.h2>
                     <motion.p 
-                      className="text-muted-foreground text-sm sm:text-base"
+                      className="text-muted-foreground text-sm sm:text-base motion-safe"
                       initial={{ opacity: 0, y: 3 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: 0.1, duration: 0.18, ease: [0.25, 0.46, 0.45, 0.94] }}
+                      style={{ willChange: 'transform, opacity' }}
                     >
                       {currentView === 'today' && 'Focus on what matters today'}
                       {currentView === 'upcoming' && 'Plan ahead and stay organized'}
@@ -345,10 +351,11 @@ export function TaskManager() {
                   <div className="flex flex-col space-y-3 sm:space-y-4">
                     {stats && (
                       <motion.div 
-                        className="flex items-center space-x-4 text-sm justify-start sm:justify-end"
+                        className="flex items-center space-x-4 text-sm justify-start sm:justify-end motion-safe"
                         initial={{ opacity: 0, y: 6 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.12, duration: 0.18, ease: [0.25, 0.46, 0.45, 0.94] }}
+                        style={{ willChange: 'transform, opacity' }}
                       >
                         <div className="flex items-center space-x-1 text-muted-foreground">
                           <Clock className="h-4 w-4" />
@@ -366,16 +373,18 @@ export function TaskManager() {
                     )}
                     {stats && (
                       <motion.div 
-                        className="flex flex-col space-y-2 sm:flex-row sm:items-center sm:space-y-0 sm:space-x-2"
+                        className="flex flex-col space-y-2 sm:flex-row sm:items-center sm:space-y-0 sm:space-x-2 motion-safe"
                         initial={{ opacity: 0, y: 6 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.12, duration: 0.18, ease: [0.25, 0.46, 0.45, 0.94] }}
+                        style={{ willChange: 'transform, opacity' }}
                       >
                         <motion.div
                           initial={{ opacity: 0, scale: 0.98 }}
                           animate={{ opacity: 1, scale: 1 }}
                           transition={{ delay: 0.15, duration: 0.15, ease: [0.25, 0.46, 0.45, 0.94] }}
-                          className="w-full sm:w-auto"
+                          className="w-full sm:w-auto motion-safe"
+                          style={{ willChange: 'transform, opacity' }}
                         >
                           <ViewSwitcher
                             value={groupByCategory ? "categories" : "grid"}
@@ -387,7 +396,8 @@ export function TaskManager() {
                           initial={{ opacity: 0, scale: 0.98 }}
                           animate={{ opacity: 1, scale: 1 }}
                           transition={{ delay: 0.18, duration: 0.15, ease: [0.25, 0.46, 0.45, 0.94] }}
-                          className="w-full sm:w-auto"
+                          className="w-full sm:w-auto motion-safe"
+                          style={{ willChange: 'transform, opacity' }}
                         >
                           <SortDropdown
                             value={sortBy}
@@ -414,10 +424,12 @@ export function TaskManager() {
             )}
 
             <motion.div 
-              className="space-y-4 flex-1"
+              className="space-y-4 flex-1 motion-safe"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3, duration: 0.4 }}
+              style={{ willChange: 'transform, opacity' }}
+              data-motion="true"
             >
               {isLoading ? (
                 <div className="flex items-center justify-center min-h-[60vh]">
@@ -425,7 +437,8 @@ export function TaskManager() {
                     initial={{ opacity: 0, scale: 0.8 }}
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] }}
-                    className="flex space-x-2"
+                    className="flex space-x-2 motion-safe"
+                    style={{ willChange: 'transform, opacity' }}
                   >
                     {[0, 1, 2].map((index) => (
                       <motion.div
