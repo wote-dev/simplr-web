@@ -56,7 +56,7 @@ export function CategoryGroupedTasks({
               duration: 0.3,
               ease: [0.4, 0, 0.2, 1]
             }}
-            className="rounded-lg bg-card/50 border overflow-hidden"
+            className="rounded-lg bg-card/50 border"
           >
             {/* Category Header */}
             <motion.button 
@@ -86,7 +86,6 @@ export function CategoryGroupedTasks({
             <AnimatePresence initial={false}>
               {isExpanded && (
                 <motion.div 
-                  className="overflow-hidden"
                   initial={{ height: 0, opacity: 0 }}
                   animate={{ 
                     height: 'auto', 

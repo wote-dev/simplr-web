@@ -415,13 +415,20 @@ export function useTasks(): UseTasksReturn {
         // Schedule reminder if enabled
         handleReminderScheduling(newTask);
         
-        // Optimistic update
-        addOptimisticTask(newTask);
-        
+        // Update tasks state immediately - the real-time subscription will handle duplicates
         startTransition(() => {
           setTasks(prev => {
-            console.log('Updating tasks state with new task:', newTask);
-            return [...prev, newTask];
+            console.log('Previous tasks before adding:', prev.length);
+            // Check if task already exists to avoid duplicates
+            const exists = prev.some(t => t.id === newTask.id);
+            if (!exists) {
+              console.log('Adding new task to state:', newTask);
+              const updatedTasks = [newTask, ...prev]; // Add to beginning for better UX
+              console.log('Tasks after adding new task:', updatedTasks.length, updatedTasks);
+              return updatedTasks;
+            }
+            console.log('Task already exists in state, skipping:', newTask.id);
+            return prev;
           });
         });
       } else {
@@ -438,13 +445,14 @@ export function useTasks(): UseTasksReturn {
         // Schedule reminder if enabled
         handleReminderScheduling(newTask);
 
-        // Optimistic update
-        addOptimisticTask(newTask);
-
+        // Update tasks state immediately
         startTransition(() => {
           setTasks(prev => {
-            console.log('Updating tasks state with new task:', newTask);
-            return [...prev, newTask];
+            console.log('Previous tasks before adding (local):', prev.length);
+            console.log('Adding new task to local state:', newTask);
+            const updatedTasks = [newTask, ...prev]; // Add to beginning for better UX
+            console.log('Tasks after adding new task (local):', updatedTasks.length, updatedTasks);
+            return updatedTasks;
           });
         });
       }
@@ -465,7 +473,7 @@ export function useTasks(): UseTasksReturn {
       setTimeout(() => setError(null), 10000);
       throw err;
     }
-  }, [addOptimisticTask, useSupabase, user?.id]);
+  }, [useSupabase, user?.id, startTransition]);
 
   const updateTask = useCallback(async (id: number, updates: Partial<Task>): Promise<void> => {
     try {
@@ -680,9 +688,11 @@ export function useTasks(): UseTasksReturn {
     const tomorrow = new Date(today);
     tomorrow.setDate(tomorrow.getDate() + 1);
 
+    console.log('getTasksForView called:', { view, totalTasks: optimisticTasks.length, optimisticTasks });
+
     switch (view) {
       case 'today':
-        return optimisticTasks.filter(task => {
+        const todayTasks = optimisticTasks.filter(task => {
           // Don't show completed tasks in today view
           if (task.completed) return false;
           
@@ -693,9 +703,11 @@ export function useTasks(): UseTasksReturn {
           // Include today's tasks and overdue tasks
           return dueDate <= today;
         });
+        console.log('Today tasks filtered:', todayTasks);
+        return todayTasks;
       
       case 'upcoming':
-        return optimisticTasks.filter(task => {
+        const upcomingTasks = optimisticTasks.filter(task => {
           // Don't show completed tasks in upcoming view
           if (task.completed) return false;
           
@@ -705,12 +717,18 @@ export function useTasks(): UseTasksReturn {
           const dueDate = new Date(task.dueDate);
           return dueDate >= tomorrow;
         });
+        console.log('Upcoming tasks filtered:', upcomingTasks);
+        return upcomingTasks;
       
       case 'completed':
-        return optimisticTasks.filter(task => task.completed);
+        const completedTasks = optimisticTasks.filter(task => task.completed);
+        console.log('Completed tasks filtered:', completedTasks);
+        return completedTasks;
       
       default:
-        return optimisticTasks.filter(task => !task.completed);
+        const defaultTasks = optimisticTasks.filter(task => !task.completed);
+        console.log('Default tasks filtered:', defaultTasks);
+        return defaultTasks;
     }
   }, [optimisticTasks, currentTime]);
 
