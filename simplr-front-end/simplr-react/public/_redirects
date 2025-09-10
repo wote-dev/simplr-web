@@ -5,4 +5,5 @@
 /assets/*  /assets/:splat  200
 
 # Redirect all other requests to index.html for client-side routing
-/*    /index.html   200
+# Exclude files with extensions to prevent infinite loops
+/*    /index.html   200!
