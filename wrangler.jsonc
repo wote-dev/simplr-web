@@ -1,11 +1,12 @@
 {
   "name": "simplr-web",
   "compatibility_date": "2025-01-07",
+  "main": "./simplr-front-end/simplr-react/dist/_worker.js",
   "assets": {
-    "directory": "./simplr-front-end/simplr-react/dist"
+    "directory": "./simplr-front-end/simplr-react/dist",
+    "binding": "ASSETS"
   },
   "build": {
     "command": "cd simplr-front-end/simplr-react && npm install && npm run build"
-  },
-  "main": "./simplr-front-end/simplr-react/dist/_worker.js"
+  }
 }
