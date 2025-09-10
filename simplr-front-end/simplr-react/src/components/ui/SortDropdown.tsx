@@ -7,6 +7,7 @@ import type { SortOption } from '@/hooks/useTasks';
 interface SortDropdownProps {
   value: SortOption;
   onValueChange: (value: SortOption) => void;
+  disabled?: boolean;
 }
 
 const sortOptions = [
@@ -36,7 +37,7 @@ const sortOptions = [
   },
 ];
 
-export function SortDropdown({ value, onValueChange }: SortDropdownProps) {
+export function SortDropdown({ value, onValueChange, disabled }: SortDropdownProps) {
   const [isOpen, setIsOpen] = useState(false);
   
   const selectedOption = sortOptions.find(option => option.id === value) || sortOptions[0];
@@ -49,6 +50,7 @@ export function SortDropdown({ value, onValueChange }: SortDropdownProps) {
         variant="outline"
         size="sm"
         onClick={() => setIsOpen(!isOpen)}
+        disabled={disabled}
         className="flex items-center gap-2 text-xs font-medium bg-background/80 backdrop-blur-sm border-border/50 hover:bg-gray-100 dark:hover:bg-accent hover:text-gray-700 dark:hover:text-accent-foreground transition-colors duration-150 min-w-[140px] justify-between"
       >
         <div className="flex items-center gap-1.5">

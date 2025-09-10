@@ -317,7 +317,7 @@ export function TaskManager() {
           >
             {(isLoading || viewTasks.length > 0) && (
               <motion.div 
-                className="mb-6 motion-safe"
+                className="relative z-20 mb-6 motion-safe"
                 initial={{ opacity: 0, y: 6 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.05, duration: 0.2, ease: [0.25, 0.46, 0.45, 0.94] }}
@@ -396,12 +396,13 @@ export function TaskManager() {
                           initial={{ opacity: 0, scale: 0.98 }}
                           animate={{ opacity: 1, scale: 1 }}
                           transition={{ delay: 0.18, duration: 0.15, ease: [0.25, 0.46, 0.45, 0.94] }}
-                          className="w-full sm:w-auto motion-safe"
+                          className="relative z-10 w-full sm:w-auto motion-safe"
                           style={{ willChange: 'transform, opacity' }}
                         >
                           <SortDropdown
                             value={sortBy}
                             onValueChange={setSortBy}
+                            disabled={viewTasks.length === 0}
                           />
                         </motion.div>
                         
