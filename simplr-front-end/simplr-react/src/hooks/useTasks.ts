@@ -822,7 +822,7 @@ export function useTasks(): UseTasksReturn {
     toggleTaskComplete,
     updateChecklistItem,
     getTasksForView,
-    isLoading: false, // Remove loading state that was causing UI flicker
+    isLoading: isSyncing, // Use isSyncing as loading state for proper UX
     isSyncing,
     error,
     connectionStatus,

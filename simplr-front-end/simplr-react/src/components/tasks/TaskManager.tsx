@@ -458,7 +458,7 @@ export function TaskManager() {
                     ))}
                   </motion.div>
                 </div>
-              ) : viewTasks.length === 0 ? (
+              ) : !isLoading && viewTasks.length === 0 ? (
                 <div className="flex flex-col items-center justify-center min-h-[60vh] px-4">
                   <h3 className="text-base font-medium text-muted-foreground mb-2">
                     {currentView === 'completed' 
