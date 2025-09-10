@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Loader2, User } from 'lucide-react';
 import GoogleLogo from '../../assets/google-logo.svg';
+import GitHubLogo from '../../assets/github-logo.svg';
 import { useAuth } from '@/contexts/AuthContext';
 import { cn } from '@/lib/utils';
 import { Link } from 'react-router-dom';
@@ -12,8 +13,8 @@ interface LoginOverlayProps {
 }
 
 export function LoginOverlay({ className }: LoginOverlayProps) {
-  const { signInWithGoogle, signInAsGuest, isLoading, error } = useAuth();
-  const [loadingType, setLoadingType] = useState<'google' | 'guest' | null>(null);
+  const { signInWithGoogle, signInWithGitHub, signInAsGuest, isLoading, error } = useAuth();
+  const [loadingType, setLoadingType] = useState<'google' | 'github' | 'guest' | null>(null);
 
   const handleGoogleSignIn = async () => {
     try {
@@ -21,6 +22,17 @@ export function LoginOverlay({ className }: LoginOverlayProps) {
       await signInWithGoogle();
     } catch (err) {
       console.error('Google Sign-In failed:', err);
+    } finally {
+      setLoadingType(null);
+    }
+  };
+
+  const handleGitHubSignIn = async () => {
+    try {
+      setLoadingType('github');
+      await signInWithGitHub();
+    } catch (err) {
+      console.error('GitHub Sign-In failed:', err);
     } finally {
       setLoadingType(null);
     }
@@ -90,6 +102,20 @@ export function LoginOverlay({ className }: LoginOverlayProps) {
                 <img src={GoogleLogo} alt="Google" className="mr-2 h-5 w-5 flex-shrink-0" />
               )}
               Continue with Google
+            </Button>
+            
+            <Button
+              onClick={handleGitHubSignIn}
+              disabled={isLoading}
+              className="w-full h-12 bg-white hover:bg-gray-50 dark:bg-black dark:hover:bg-gray-900 text-gray-900 dark:text-white border-2 border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 font-medium transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] shadow-sm"
+              size="lg"
+            >
+              {loadingType === 'github' ? (
+                <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+              ) : (
+                <img src={GitHubLogo} alt="GitHub" className="mr-2 h-5 w-5 flex-shrink-0" />
+              )}
+              Continue with GitHub
             </Button>
             
             <div className="relative">

@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import type { AuthState, AuthType, User, UseAuthReturn } from '@/types';
 import { supabase } from '@/lib/supabase';
+import { UserPreferencesService } from '@/lib/userPreferences';
 import type { User as SupabaseUser } from '@supabase/supabase-js';
 
 const AuthContext = createContext<UseAuthReturn | undefined>(undefined);
@@ -152,6 +153,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
     switch (provider) {
       case 'google':
         return 'google';
+      case 'github':
+        return 'github';
       default:
         return 'guest';
     }
@@ -180,6 +183,33 @@ export function AuthProvider({ children }: AuthProviderProps) {
         ...prev,
         isLoading: false,
         error: error instanceof Error ? error.message : 'Google Sign-In failed',
+      }));
+    }
+  };
+
+  const signInWithGitHub = async (): Promise<void> => {
+    setAuthState(prev => ({ ...prev, isLoading: true, error: null }));
+    
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'github',
+        options: {
+          redirectTo: window.location.origin,
+        },
+      });
+
+      if (error) {
+        throw error;
+      }
+
+      // The auth state will be updated by the onAuthStateChange listener
+      // when the user returns from the OAuth flow
+    } catch (error) {
+      console.error('GitHub Sign-In failed:', error);
+      setAuthState(prev => ({
+        ...prev,
+        isLoading: false,
+        error: error instanceof Error ? error.message : 'GitHub Sign-In failed',
       }));
     }
   };
@@ -264,6 +294,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         // For local guest users, just clear localStorage and update state
         localStorage.removeItem('simplr_guest_user');
         localStorage.removeItem('simplr_auth_type');
+        UserPreferencesService.clearPreferences();
         
         setAuthState({
           user: null,
@@ -282,6 +313,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
         throw error;
       }
 
+      // Clear user preferences on sign out
+      UserPreferencesService.clearPreferences();
+
       // The auth state will be updated by the onAuthStateChange listener
     } catch (error) {
       console.error('Sign-out failed:', error);
@@ -296,6 +330,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const value: UseAuthReturn = {
     ...authState,
     signInWithGoogle,
+    signInWithGitHub,
     signInAsGuest,
     signOut,
   };

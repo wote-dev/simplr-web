@@ -3,6 +3,7 @@ import { useTasks, sortTasks, type SortOption } from '@/hooks/useTasks';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useToast } from '@/hooks/useToastContext';
 import { useAuth } from '@/contexts/AuthContext';
+import { UserPreferencesService } from '@/lib/userPreferences';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ViewSwitcher } from '@/components/ui/ViewSwitcher';
@@ -55,9 +56,65 @@ export function TaskManager() {
   const [groupByCategory, setGroupByCategory] = useState(false);
   const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
   const [sortBy, setSortBy] = useState<SortOption>('latest');
+  const [preferencesLoaded, setPreferencesLoaded] = useState(false);
 
   const rawViewTasks = getTasksForView(currentView);
   const viewTasks = sortTasks(rawViewTasks, sortBy);
+
+  // Load user preferences on mount
+  useEffect(() => {
+    const loadUserPreferences = async () => {
+      try {
+        const preferences = await UserPreferencesService.loadPreferences(user?.id);
+        setGroupByCategory(preferences.viewMode === 'categories');
+        setSortBy(preferences.sortBy);
+        setPreferencesLoaded(true);
+      } catch (error) {
+        console.error('Failed to load user preferences:', error);
+        setPreferencesLoaded(true);
+      }
+    };
+
+    loadUserPreferences();
+  }, [user?.id]);
+
+  // Save view mode preference when it changes
+  useEffect(() => {
+    if (!preferencesLoaded) return;
+    
+    const saveViewPreference = async () => {
+      try {
+        await UserPreferencesService.updatePreference(
+          'viewMode',
+          groupByCategory ? 'categories' : 'grid',
+          user?.id
+        );
+      } catch (error) {
+        console.error('Failed to save view preference:', error);
+      }
+    };
+
+    saveViewPreference();
+  }, [groupByCategory, user?.id, preferencesLoaded]);
+
+  // Save sort preference when it changes
+  useEffect(() => {
+    if (!preferencesLoaded) return;
+    
+    const saveSortPreference = async () => {
+      try {
+        await UserPreferencesService.updatePreference(
+          'sortBy',
+          sortBy,
+          user?.id
+        );
+      } catch (error) {
+        console.error('Failed to save sort preference:', error);
+      }
+    };
+
+    saveSortPreference();
+  }, [sortBy, user?.id, preferencesLoaded]);
 
   const handleAddTask = () => {
     setEditingTask(undefined);

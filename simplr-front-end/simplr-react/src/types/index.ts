@@ -46,7 +46,7 @@ export interface User {
   avatar?: string;
 }
 
-export type AuthType = 'google' | 'guest';
+export type AuthType = 'google' | 'github' | 'guest';
 
 export interface AuthState {
   user: User | null;
@@ -146,6 +146,7 @@ export interface UseTasksReturn {
 
 export interface UseAuthReturn extends AuthState {
   signInWithGoogle: () => Promise<void>;
+  signInWithGitHub: () => Promise<void>;
   signInAsGuest: () => Promise<void>;
   signOut: () => Promise<void>;
 }
