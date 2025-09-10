@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Loader2, User } from 'lucide-react';
 import GoogleLogo from '../../assets/google-logo.svg';
-import GitHubLogo from '../../assets/github-logo.svg';
+import { GitHubIcon } from '@/components/icons/GitHubIcon';
 import { useAuth } from '@/contexts/AuthContext';
 import { cn } from '@/lib/utils';
 import { Link } from 'react-router-dom';
@@ -113,7 +113,7 @@ export function LoginOverlay({ className }: LoginOverlayProps) {
               {loadingType === 'github' ? (
                 <Loader2 className="mr-2 h-5 w-5 animate-spin" />
               ) : (
-                <img src={GitHubLogo} alt="GitHub" className="mr-2 h-5 w-5 flex-shrink-0" />
+                <GitHubIcon className="mr-2 h-5 w-5 flex-shrink-0" />
               )}
               Continue with GitHub
             </Button>
