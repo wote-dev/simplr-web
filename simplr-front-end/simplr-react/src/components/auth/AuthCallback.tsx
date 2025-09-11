@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
+import { motion } from 'framer-motion';
 import { supabase } from '@/lib/supabase';
-import { Loader2 } from 'lucide-react';
 
 interface AuthCallbackProps {
   onComplete: () => void;
@@ -37,10 +37,29 @@ export function AuthCallback({ onComplete }: AuthCallbackProps) {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background">
-      <div className="text-center space-y-4">
-        <Loader2 className="h-8 w-8 animate-spin mx-auto text-primary" />
-        <p className="text-muted-foreground">Completing authentication...</p>
-      </div>
+      <motion.div
+        initial={{ opacity: 0, scale: 0.8 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] }}
+        className="flex space-x-2"
+      >
+        {[0, 1, 2].map((index) => (
+          <motion.div
+            key={index}
+            className="w-3 h-3 bg-primary rounded-full"
+            animate={{
+              scale: [1, 1.2, 1],
+              opacity: [0.7, 1, 0.7]
+            }}
+            transition={{
+              duration: 1.2,
+              repeat: Infinity,
+              delay: index * 0.2,
+              ease: "easeInOut"
+            }}
+          />
+        ))}
+      </motion.div>
     </div>
   );
 }
