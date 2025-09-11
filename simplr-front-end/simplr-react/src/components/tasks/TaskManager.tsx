@@ -247,7 +247,7 @@ export function TaskManager() {
 
   return (
     <div className="flex flex-col min-h-screen bg-background view-background">
-      <header className="bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-40">
+      <header className="bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-40 border-b border-border/50 shadow-sm">
         <div className="w-full max-w-6xl mx-auto flex h-14 sm:h-16 items-center justify-between px-3 sm:px-4">
           <div className="flex items-center space-x-3 sm:space-x-4">
             <div className="flex items-center space-x-2">
