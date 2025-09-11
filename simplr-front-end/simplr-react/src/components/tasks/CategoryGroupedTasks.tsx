@@ -4,7 +4,6 @@ import { ChevronDown } from 'lucide-react';
 import { TaskCard } from './TaskCard';
 import { taskCategories, getTasksByCategory } from '@/hooks/useTasks';
 import type { Task, TaskCategory } from '@/types';
-import { useAnimationConfig } from '@/lib/animations';
 
 interface CategoryGroupedTasksProps {
   tasks: Task[];
@@ -22,7 +21,6 @@ export function CategoryGroupedTasks({
   onToggleChecklistItem
 }: CategoryGroupedTasksProps) {
   const tasksByCategory = getTasksByCategory(tasks);
-  const { getDuration, getEasing, mobileOptimizedStyle } = useAnimationConfig();
   const [expandedCategories, setExpandedCategories] = useState<Record<string, boolean>>({});
 
   const toggleCategory = (category: string) => {
@@ -62,12 +60,12 @@ export function CategoryGroupedTasks({
           >
             {/* Category Header */}
             <motion.button 
-              className="w-full flex items-center gap-3 px-4 py-3 text-left motion-safe mobile-fast-transition"
+              className="w-full flex items-center gap-3 px-4 py-3 text-left motion-safe"
               onClick={() => toggleCategory(category)}
               whileHover={{ backgroundColor: 'rgba(var(--accent), 0.03)' }}
               whileTap={{ scale: 0.998 }}
-              transition={{ duration: getDuration('fast'), ease: getEasing() }}
-              style={{ ...mobileOptimizedStyle, willChange: 'transform' }}
+              transition={{ duration: 0.15, ease: [0.25, 0.46, 0.45, 0.94] }}
+              style={{ willChange: 'transform' }}
             >
               <div className={`w-3 h-3 rounded-full bg-${categoryConfig.color}-500 flex-shrink-0`} />
               <h3 className="text-lg font-semibold text-foreground">
@@ -79,8 +77,8 @@ export function CategoryGroupedTasks({
               </span>
               <motion.div
                 animate={{ rotate: isExpanded ? 180 : 0 }}
-                transition={{ duration: getDuration('normal'), ease: getEasing() }}
-                style={{ ...mobileOptimizedStyle, willChange: 'transform' }}
+                transition={{ duration: 0.2, ease: [0.25, 0.46, 0.45, 0.94] }}
+                style={{ willChange: 'transform' }}
                 className="motion-safe"
               >
                 <ChevronDown className="w-5 h-5 text-muted-foreground" />
@@ -96,20 +94,20 @@ export function CategoryGroupedTasks({
                     height: 'auto', 
                     opacity: 1,
                     transition: {
-                      height: { duration: getDuration('normal'), ease: getEasing() },
-                      opacity: { duration: getDuration('fast'), delay: 0.05, ease: getEasing() }
+                      height: { duration: 0.25, ease: [0.25, 0.46, 0.45, 0.94] },
+                      opacity: { duration: 0.2, delay: 0.05, ease: [0.25, 0.46, 0.45, 0.94] }
                     }
                   }}
                   exit={{ 
                     height: 0, 
                     opacity: 0,
                     transition: {
-                      height: { duration: getDuration('fast'), delay: 0.05, ease: getEasing() },
-                      opacity: { duration: getDuration('fast'), ease: getEasing() }
+                      height: { duration: 0.2, delay: 0.05, ease: [0.25, 0.46, 0.45, 0.94] },
+                      opacity: { duration: 0.15, ease: [0.25, 0.46, 0.45, 0.94] }
                     }
                   }}
-                  style={{ ...mobileOptimizedStyle, willChange: 'height, opacity' }}
-                  className="motion-safe mobile-fast-transition"
+                  style={{ willChange: 'height, opacity' }}
+                  className="motion-safe"
                 >
                   <motion.div 
                     className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3 p-4 pt-0 motion-safe"

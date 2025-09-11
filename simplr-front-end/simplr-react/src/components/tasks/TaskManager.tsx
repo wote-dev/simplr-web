@@ -9,7 +9,6 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ViewSwitcher } from '@/components/ui/ViewSwitcher';
 import { SortDropdown } from '@/components/ui/SortDropdown';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useAnimationConfig, createMotionProps } from '@/lib/animations';
 import {
   AlertDialog,
   AlertDialogContent,
@@ -48,7 +47,6 @@ export function TaskManager() {
   const { resolvedTheme } = useTheme();
   const { showToast } = useToast();
   const { user } = useAuth();
-  const { getDuration, getEasing, mobileOptimizedStyle } = useAnimationConfig();
 
   const [currentView, setCurrentView] = useState<TaskView>('today');
   const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
@@ -329,37 +327,43 @@ export function TaskManager() {
         <AnimatePresence mode="wait">
           <motion.div
             key={currentView}
-            {...createMotionProps('slideUp', {
-              className: "flex-1 flex flex-col motion-safe mobile-fast-transition",
-              'data-motion': "true"
-            })}
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            transition={{ 
+              duration: 0.15, 
+              ease: [0.25, 0.46, 0.45, 0.94]
+            }}
+            style={{ willChange: 'transform, opacity' }}
+            className="flex-1 flex flex-col motion-safe"
+            data-motion="true"
           >
             {(isLoading || viewTasks.length > 0) && (
               <motion.div 
-                className="relative z-20 mb-6 motion-safe mobile-fast-transition"
+                className="relative z-20 mb-6 motion-safe"
                 initial={{ opacity: 0, y: 6 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: getDuration('fast') * 0.5, duration: getDuration('normal'), ease: getEasing() }}
-                style={mobileOptimizedStyle}
+                transition={{ delay: 0.05, duration: 0.2, ease: [0.25, 0.46, 0.45, 0.94] }}
+                style={{ willChange: 'transform, opacity' }}
                 data-motion="true"
               >
                 <div className="flex flex-col space-y-3 mb-4 sm:flex-row sm:items-end sm:justify-between sm:space-y-0">
                   <div className="flex-1">
                     <motion.h2 
-                      className="text-xl sm:text-2xl font-bold motion-safe mobile-fast-transition"
+                      className="text-xl sm:text-2xl font-bold motion-safe"
                       initial={{ opacity: 0, y: 3 }}
                       animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: getDuration('fast'), duration: getDuration('normal'), ease: getEasing() }}
-                      style={mobileOptimizedStyle}
+                      transition={{ delay: 0.08, duration: 0.18, ease: [0.25, 0.46, 0.45, 0.94] }}
+                      style={{ willChange: 'transform, opacity' }}
                     >
                       {getViewTitle()}
                     </motion.h2>
                     <motion.p 
-                      className="text-muted-foreground text-xs sm:text-sm motion-safe mobile-fast-transition mt-1"
+                      className="text-muted-foreground text-xs sm:text-sm motion-safe mt-1"
                       initial={{ opacity: 0, y: 3 }}
                       animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: getDuration('normal'), duration: getDuration('normal'), ease: getEasing() }}
-                      style={mobileOptimizedStyle}
+                      transition={{ delay: 0.1, duration: 0.18, ease: [0.25, 0.46, 0.45, 0.94] }}
+                      style={{ willChange: 'transform, opacity' }}
                     >
                       {currentView === 'today' && 'Focus on what matters today'}
                       {currentView === 'upcoming' && 'Plan ahead and stay organized'}
@@ -370,10 +374,10 @@ export function TaskManager() {
                   {/* Mobile Stats - Compact Design */}
                   {stats && (
                     <motion.div 
-                      className="flex items-center justify-between sm:justify-end bg-muted/30 rounded-lg px-3 py-2 sm:bg-transparent sm:px-0 sm:py-0 motion-safe mobile-fast-transition"
+                      className="flex items-center justify-between sm:justify-end bg-muted/30 rounded-lg px-3 py-2 sm:bg-transparent sm:px-0 sm:py-0 motion-safe"
                       initial={{ opacity: 0, y: 6 }}
                       animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: getDuration('slow'), duration: getDuration('normal'), ease: getEasing() }}
+                      transition={{ delay: 0.12, duration: 0.18, ease: [0.25, 0.46, 0.45, 0.94] }}
                       style={{ willChange: 'transform, opacity' }}
                     >
                       <div className="flex items-center space-x-3 sm:space-x-4 text-xs sm:text-sm">
@@ -399,11 +403,11 @@ export function TaskManager() {
                 
                 {/* Controls Section - Optimized for Mobile */}
                 <motion.div 
-                  className="flex flex-col space-y-3 sm:flex-row sm:items-center sm:justify-between sm:space-y-0 mb-4 motion-safe mobile-fast-transition"
+                  className="flex flex-col space-y-3 sm:flex-row sm:items-center sm:justify-between sm:space-y-0 mb-4 motion-safe"
                   initial={{ opacity: 0, y: 6 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: getDuration('slow'), duration: getDuration('normal'), ease: getEasing() }}
-                  style={mobileOptimizedStyle}
+                  transition={{ delay: 0.12, duration: 0.18, ease: [0.25, 0.46, 0.45, 0.94] }}
+                  style={{ willChange: 'transform, opacity' }}
                 >
                   {/* Hide ViewSwitcher on mobile, show only on desktop */}
                   <motion.div
