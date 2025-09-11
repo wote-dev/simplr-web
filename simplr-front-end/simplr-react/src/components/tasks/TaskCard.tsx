@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Check, Edit, Trash2, Calendar, Clock, MoreVertical, Bell } from 'lucide-react';
 import type { Task } from '@/types';
 import { taskCategories, getTaskProgress, isTaskOverdue } from '@/hooks/useTasks';
+import { useAnimationConfig, createMotionProps } from '@/lib/animations';
 
 interface TaskCardProps {
   task: Task;
@@ -20,6 +21,7 @@ const TaskCardComponent = ({ task, onToggleComplete, onEdit, onDelete, onToggleC
   const [isCompleting, setIsCompleting] = useState(false);
   const [isUncompleting, setIsUncompleting] = useState(false);
   const [isDisappearing, setIsDisappearing] = useState(false);
+  const { getDuration, getEasing, mobileOptimizedStyle } = useAnimationConfig();
   
   const categoryConfig = taskCategories[task.category];
   const progress = getTaskProgress(task);
@@ -127,8 +129,8 @@ const TaskCardComponent = ({ task, onToggleComplete, onEdit, onDelete, onToggleC
                       initial={{ scale: 0.8, opacity: 0 }}
                       animate={{ scale: 1, opacity: 1 }}
                       exit={{ scale: 0.8, opacity: 0 }}
-                      transition={{ duration: 0.2, ease: [0.25, 0.46, 0.45, 0.94] }}
-                      style={{ willChange: 'transform, opacity' }}
+                      transition={{ duration: getDuration('normal'), ease: getEasing() }}
+                      style={mobileOptimizedStyle}
                       className="motion-safe"
                     >
                       <Check className="h-2.5 w-2.5" />
@@ -141,12 +143,9 @@ const TaskCardComponent = ({ task, onToggleComplete, onEdit, onDelete, onToggleC
               <AnimatePresence>
                 {isCompleting && (
                   <motion.div
-                    initial={{ scale: 1, opacity: 0.5 }}
-                    animate={{ scale: 1.4, opacity: 0 }}
-                    exit={{ opacity: 0 }}
-                    transition={{ duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] }}
-                    className="absolute inset-0 rounded-full bg-green-400/30 pointer-events-none motion-safe"
-                    style={{ willChange: 'transform, opacity' }}
+                    {...createMotionProps('taskPulse', {
+                      className: "absolute inset-0 rounded-full bg-green-400/30 pointer-events-none motion-safe"
+                    })}
                   />
                 )}
               </AnimatePresence>
@@ -158,9 +157,9 @@ const TaskCardComponent = ({ task, onToggleComplete, onEdit, onDelete, onToggleC
                     initial={{ scale: 1, opacity: 0.5 }}
                     animate={{ scale: 1.2, opacity: 0 }}
                     exit={{ opacity: 0 }}
-                    transition={{ duration: 0.3, ease: [0.25, 0.46, 0.45, 0.94] }}
+                    transition={{ duration: getDuration('slow'), ease: getEasing() }}
                     className="absolute inset-0 rounded-full bg-blue-400/40 pointer-events-none motion-safe"
-                    style={{ willChange: 'transform, opacity' }}
+                    style={mobileOptimizedStyle}
                   />
                 )}
               </AnimatePresence>

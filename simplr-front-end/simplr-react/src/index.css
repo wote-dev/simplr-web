@@ -199,6 +199,39 @@
     }
   }
 
+  /* Mobile-optimized tab animations */
+  @media (max-width: 768px) {
+    .tab-transition-enter {
+      animation: tabSlideInMobile 0.08s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+    }
+
+    .tab-transition-exit {
+      animation: tabSlideOutMobile 0.08s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+    }
+
+    @keyframes tabSlideInMobile {
+      from {
+        opacity: 0;
+        transform: translate3d(0, 4px, 0);
+      }
+      to {
+        opacity: 1;
+        transform: translate3d(0, 0, 0);
+      }
+    }
+
+    @keyframes tabSlideOutMobile {
+      from {
+        opacity: 1;
+        transform: translate3d(0, 0, 0);
+      }
+      to {
+        opacity: 0;
+        transform: translate3d(0, -4px, 0);
+      }
+    }
+  }
+
   /* Subtle background gradient animation for view changes */
   .view-background {
     background: linear-gradient(
@@ -247,6 +280,51 @@
     to {
       opacity: 1;
       transform: translate3d(0, 0, 0);
+    }
+  }
+
+  /* Mobile-optimized animations */
+  @media (max-width: 768px) {
+    .view-background {
+      animation: backgroundShiftMobile 0.3s ease-out;
+    }
+
+    @keyframes backgroundShiftMobile {
+      0% {
+        background-position: 100% 0%;
+      }
+      100% {
+        background-position: 0% 0%;
+      }
+    }
+
+    .active-tab-pulse {
+      animation: tabPulseMobile 1.5s ease-in-out infinite;
+    }
+
+    @keyframes tabPulseMobile {
+      0%,
+      100% {
+        box-shadow: 0 0 0 0 hsl(var(--primary) / 0.3);
+      }
+      50% {
+        box-shadow: 0 0 0 2px hsl(var(--primary) / 0.1);
+      }
+    }
+
+    .content-fade-in {
+      animation: contentFadeInMobile 0.12s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+    }
+
+    @keyframes contentFadeInMobile {
+      from {
+        opacity: 0;
+        transform: translate3d(0, 3px, 0);
+      }
+      to {
+        opacity: 1;
+        transform: translate3d(0, 0, 0);
+      }
     }
   }
 
@@ -323,10 +401,10 @@
       transform: translateZ(0);
     }
 
-    /* Optimize animations for mobile */
+    /* Optimize animations for mobile - faster durations */
     .motion-reduce-mobile {
-      animation-duration: 0.1s !important;
-      transition-duration: 0.1s !important;
+      animation-duration: 0.08s !important;
+      transition-duration: 0.08s !important;
     }
 
     /* Hardware acceleration for mobile animations */
@@ -334,12 +412,64 @@
       will-change: transform, opacity;
       transform: translateZ(0);
       backface-visibility: hidden;
+      perspective: 1000px;
+    }
+
+    /* Enhanced mobile performance optimizations */
+    .motion-safe {
+      will-change: transform, opacity;
+      transform: translateZ(0);
+      backface-visibility: hidden;
+    }
+
+    /* Fast mobile transitions */
+    .mobile-fast-transition {
+      transition: all 0.08s cubic-bezier(0.4, 0, 0.2, 1) !important;
     }
 
     /* Smooth scrolling optimization for mobile */
     .mobile-scroll-smooth {
       -webkit-overflow-scrolling: touch;
       scroll-behavior: smooth;
+    }
+
+    /* Disable complex animations on mobile for performance */
+    .toggle-group-enhanced::before,
+    .toggle-item-smooth::before {
+      transition-duration: 0.08s !important;
+    }
+  }
+
+  /* Global mobile animation optimization utility */
+  .mobile-optimized {
+    will-change: transform, opacity;
+    transform: translateZ(0);
+    backface-visibility: hidden;
+  }
+
+  @media (max-width: 768px) {
+    .mobile-optimized {
+      animation-duration: 0.08s !important;
+      transition-duration: 0.08s !important;
+      animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1) !important;
+      transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1) !important;
+    }
+  }
+
+  /* Auto-apply mobile optimizations to common animation classes */
+  @media (max-width: 768px) {
+    .animate-in,
+    .animate-out,
+    [data-state="open"],
+    [data-state="closed"],
+    .motion-safe {
+      animation-duration: 0.08s !important;
+      transition-duration: 0.08s !important;
+      animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1) !important;
+      transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1) !important;
+      will-change: transform, opacity;
+      transform: translateZ(0);
+      backface-visibility: hidden;
     }
   }
 
