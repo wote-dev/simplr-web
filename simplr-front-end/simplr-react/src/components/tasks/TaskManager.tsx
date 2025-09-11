@@ -56,9 +56,33 @@ export function TaskManager() {
   const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
   const [sortBy, setSortBy] = useState<SortOption>('latest');
   const [preferencesLoaded, setPreferencesLoaded] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
 
   const rawViewTasks = getTasksForView(currentView);
   const viewTasks = sortTasks(rawViewTasks, sortBy);
+
+  // Helper function to determine if we should show category view
+  // On mobile (sm and below), always use category view
+  // On desktop, use user preference
+  const shouldShowCategoryView = () => {
+    return isMobile || groupByCategory;
+  };
+
+  // Handle mobile detection
+  useEffect(() => {
+    const checkIsMobile = () => {
+      setIsMobile(window.innerWidth < 640); // 640px is Tailwind's sm breakpoint
+    };
+
+    // Check on mount
+    checkIsMobile();
+
+    // Add resize listener
+    window.addEventListener('resize', checkIsMobile);
+
+    // Cleanup
+    return () => window.removeEventListener('resize', checkIsMobile);
+  }, []);
 
   // Load user preferences on mount
   useEffect(() => {
@@ -385,11 +409,12 @@ export function TaskManager() {
                   transition={{ delay: 0.12, duration: 0.18, ease: [0.25, 0.46, 0.45, 0.94] }}
                   style={{ willChange: 'transform, opacity' }}
                 >
+                  {/* Hide ViewSwitcher on mobile, show only on desktop */}
                   <motion.div
                     initial={{ opacity: 0, scale: 0.98 }}
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ delay: 0.15, duration: 0.15, ease: [0.25, 0.46, 0.45, 0.94] }}
-                    className="w-full sm:w-auto motion-safe"
+                    className="hidden sm:block w-auto motion-safe"
                     style={{ willChange: 'transform, opacity' }}
                   >
                     <ViewSwitcher
@@ -492,7 +517,7 @@ export function TaskManager() {
                 </div>
               ) : (
                 <AnimatePresence mode="wait">
-                  {groupByCategory ? (
+                  {shouldShowCategoryView() ? (
                     <motion.div
                       key="categories"
                       initial={{ opacity: 0, y: 8 }}

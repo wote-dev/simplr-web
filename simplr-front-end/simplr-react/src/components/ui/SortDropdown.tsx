@@ -87,7 +87,7 @@ export function SortDropdown({ value, onValueChange, disabled }: SortDropdownPro
                 ease: "easeOut"
               }}
               style={{ willChange: 'transform, opacity' }}
-              className="absolute right-0 top-full mt-2 z-50 min-w-[200px] rounded-lg bg-background/95 backdrop-blur-sm border border-border/50 shadow-lg overflow-hidden"
+              className="absolute left-0 sm:right-0 sm:left-auto top-full mt-2 z-50 min-w-[200px] rounded-lg bg-background/95 backdrop-blur-sm border border-border/50 shadow-lg overflow-hidden"
             >
               <div className="p-1">
                 {sortOptions.map((option) => {

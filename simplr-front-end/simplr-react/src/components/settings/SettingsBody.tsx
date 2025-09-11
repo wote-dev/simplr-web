@@ -285,7 +285,7 @@ export function SettingsBody({ activeSection }: SettingsBodyProps) {
             <CardContent className="p-6 text-center">
               <img src="/favicon4.png" alt="Simplr Logo" className="w-24 h-24 mx-auto mb-4 rounded-full" />
               <h3 className="text-lg font-semibold">Simplr</h3>
-              <p className="text-sm text-muted-foreground">Alpha Testing Release</p>
+              <p className="text-sm text-muted-foreground">Beta Release 1.0</p>
               <p className="mt-4 text-sm">
                 A simple and elegant task management app designed to help you focus on what matters.
               </p>
