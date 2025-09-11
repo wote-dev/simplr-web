@@ -24,7 +24,6 @@ import { TaskModal } from '@/components/tasks/TaskModal';
 import { TaskCard } from '@/components/tasks/TaskCard';
 import { CategoryGroupedTasks } from '@/components/tasks/CategoryGroupedTasks';
 import { SettingsModal } from '@/components/settings/SettingsModal';
-import { BottomNavigation } from '@/components/ui/BottomNavigation';
 import { Plus, CheckCircle, Clock, Calendar, Home, Trash2 } from 'lucide-react';
 import { AnimatedThemeToggler } from '@/components/magicui/animated-theme-toggler';
 import { KeyboardHint } from '@/components/ui/keyboard-hint';
@@ -249,26 +248,26 @@ export function TaskManager() {
   return (
     <div className="flex flex-col min-h-screen bg-background view-background">
       <header className="bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-40">
-        <div className="w-full max-w-6xl mx-auto flex h-16 items-center justify-between px-4">
-          <div className="flex items-center space-x-4">
+        <div className="w-full max-w-6xl mx-auto flex h-14 sm:h-16 items-center justify-between px-3 sm:px-4">
+          <div className="flex items-center space-x-3 sm:space-x-4">
             <div className="flex items-center space-x-2">
               {resolvedTheme === 'dark' ? (
                 <img 
                   src={darkLogo} 
                   alt="Simplr" 
-                  className="h-8 w-auto object-contain"
+                  className="h-6 sm:h-8 w-auto object-contain"
                 />
               ) : (
                 <img 
                   src={lightLogo} 
                   alt="Simplr" 
-                  className="h-8 w-auto object-contain"
+                  className="h-6 sm:h-8 w-auto object-contain"
                 />
               )}
             </div>
           </div>
 
-          <div className="flex items-center space-x-3">
+          <div className="flex items-center space-x-2 sm:space-x-3">
             <KeyboardHint 
               keys={['cmd', 'k']} 
               label="Add Task"
@@ -276,14 +275,14 @@ export function TaskManager() {
               variant="secondary"
               className="hidden sm:flex"
             />
-            <AnimatedThemeToggler className="h-9 w-9 p-2 hover:bg-gray-100 dark:hover:bg-accent hover:text-gray-700 dark:hover:text-accent-foreground rounded-md transition-colors [&>svg]:h-5 [&>svg]:w-5" />
+            <AnimatedThemeToggler className="h-8 w-8 sm:h-9 sm:w-9 p-1.5 sm:p-2 hover:bg-gray-100 dark:hover:bg-accent hover:text-gray-700 dark:hover:text-accent-foreground rounded-md transition-colors [&>svg]:h-4 [&>svg]:w-4 sm:[&>svg]:h-5 sm:[&>svg]:w-5" />
             <Button
               variant="ghost"
               size="icon"
               onClick={handleOpenSettings}
-              className="h-9 w-9 p-0 rounded-full overflow-hidden hover:ring-2 hover:ring-primary/20 transition-all duration-200"
+              className="h-8 w-8 sm:h-9 sm:w-9 p-0 rounded-full overflow-hidden hover:ring-2 hover:ring-primary/20 transition-all duration-200"
             >
-              <Avatar className="h-8 w-8">
+              <Avatar className="h-7 w-7 sm:h-8 sm:w-8">
                 {user?.avatar && (
                   <AvatarImage 
                     src={user.avatar} 
@@ -291,7 +290,7 @@ export function TaskManager() {
                     className="object-cover"
                   />
                 )}
-                <AvatarFallback className="bg-gradient-to-br from-primary/20 to-primary/10 text-primary text-sm font-semibold">
+                <AvatarFallback className="bg-gradient-to-br from-primary/20 to-primary/10 text-primary text-xs sm:text-sm font-semibold">
                   {(user?.name || 'U').charAt(0).toUpperCase()}
                 </AvatarFallback>
               </Avatar>
@@ -300,7 +299,7 @@ export function TaskManager() {
         </div>
       </header>
 
-      <main className="w-full max-w-6xl mx-auto px-4 py-6 flex-1 flex flex-col pb-24 sm:pb-24">
+      <main className="w-full max-w-6xl mx-auto px-3 sm:px-4 py-4 sm:py-6 flex-1 flex flex-col pb-20 sm:pb-24">
         <AnimatePresence mode="wait">
           <motion.div
             key={currentView}
@@ -324,10 +323,10 @@ export function TaskManager() {
                 style={{ willChange: 'transform, opacity' }}
                 data-motion="true"
               >
-                <div className="flex flex-col space-y-4 mb-4 sm:flex-row sm:items-end sm:justify-between sm:space-y-0">
-                  <div>
+                <div className="flex flex-col space-y-3 mb-4 sm:flex-row sm:items-end sm:justify-between sm:space-y-0">
+                  <div className="flex-1">
                     <motion.h2 
-                      className="text-2xl font-bold motion-safe"
+                      className="text-xl sm:text-2xl font-bold motion-safe"
                       initial={{ opacity: 0, y: 3 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: 0.08, duration: 0.18, ease: [0.25, 0.46, 0.45, 0.94] }}
@@ -336,7 +335,7 @@ export function TaskManager() {
                       {getViewTitle()}
                     </motion.h2>
                     <motion.p 
-                      className="text-muted-foreground text-sm sm:text-base motion-safe"
+                      className="text-muted-foreground text-xs sm:text-sm motion-safe mt-1"
                       initial={{ opacity: 0, y: 3 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: 0.1, duration: 0.18, ease: [0.25, 0.46, 0.45, 0.94] }}
@@ -348,79 +347,83 @@ export function TaskManager() {
                     </motion.p>
                   </div>
                   
-                  <div className="flex flex-col space-y-3 sm:space-y-4">
-                    {stats && (
-                      <motion.div 
-                        className="flex items-center space-x-4 text-sm justify-start sm:justify-end motion-safe"
-                        initial={{ opacity: 0, y: 6 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.12, duration: 0.18, ease: [0.25, 0.46, 0.45, 0.94] }}
-                        style={{ willChange: 'transform, opacity' }}
-                      >
+                  {/* Mobile Stats - Compact Design */}
+                  {stats && (
+                    <motion.div 
+                      className="flex items-center justify-between sm:justify-end bg-muted/30 rounded-lg px-3 py-2 sm:bg-transparent sm:px-0 sm:py-0 motion-safe"
+                      initial={{ opacity: 0, y: 6 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.12, duration: 0.18, ease: [0.25, 0.46, 0.45, 0.94] }}
+                      style={{ willChange: 'transform, opacity' }}
+                    >
+                      <div className="flex items-center space-x-3 sm:space-x-4 text-xs sm:text-sm">
                         <div className="flex items-center space-x-1 text-muted-foreground">
-                          <Clock className="h-4 w-4" />
-                          <span className="font-medium">{stats.today} today</span>
+                          <Clock className="h-3 w-3 sm:h-4 sm:w-4" />
+                          <span className="font-medium">{stats.today}</span>
+                          <span className="hidden sm:inline">today</span>
                         </div>
                         <div className="flex items-center space-x-1 text-muted-foreground">
-                          <Calendar className="h-4 w-4" />
-                          <span className="font-medium">{stats.total} active</span>
+                          <Calendar className="h-3 w-3 sm:h-4 sm:w-4" />
+                          <span className="font-medium">{stats.total}</span>
+                          <span className="hidden sm:inline">active</span>
                         </div>
                         <div className="flex items-center space-x-1 text-muted-foreground">
-                          <CheckCircle className="h-4 w-4" />
-                          <span className="font-medium">{stats.completed} done</span>
+                          <CheckCircle className="h-3 w-3 sm:h-4 sm:w-4" />
+                          <span className="font-medium">{stats.completed}</span>
+                          <span className="hidden sm:inline">done</span>
                         </div>
-                      </motion.div>
-                    )}
-                    {stats && (
-                      <motion.div 
-                        className="flex flex-col space-y-2 sm:flex-row sm:items-center sm:space-y-0 sm:space-x-2 motion-safe"
-                        initial={{ opacity: 0, y: 6 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.12, duration: 0.18, ease: [0.25, 0.46, 0.45, 0.94] }}
-                        style={{ willChange: 'transform, opacity' }}
-                      >
-                        <motion.div
-                          initial={{ opacity: 0, scale: 0.98 }}
-                          animate={{ opacity: 1, scale: 1 }}
-                          transition={{ delay: 0.15, duration: 0.15, ease: [0.25, 0.46, 0.45, 0.94] }}
-                          className="w-full sm:w-auto motion-safe"
-                          style={{ willChange: 'transform, opacity' }}
-                        >
-                          <ViewSwitcher
-                            value={groupByCategory ? "categories" : "grid"}
-                            onValueChange={(value) => setGroupByCategory(value === 'categories')}
-                          />
-                        </motion.div>
-                        
-                        <motion.div
-                          initial={{ opacity: 0, scale: 0.98 }}
-                          animate={{ opacity: 1, scale: 1 }}
-                          transition={{ delay: 0.18, duration: 0.15, ease: [0.25, 0.46, 0.45, 0.94] }}
-                          className="relative z-10 w-full sm:w-auto motion-safe"
-                          style={{ willChange: 'transform, opacity' }}
-                        >
-                          <SortDropdown
-                            value={sortBy}
-                            onValueChange={setSortBy}
-                            disabled={viewTasks.length === 0}
-                          />
-                        </motion.div>
-                        
-                        {currentView === 'completed' && stats.completed > 0 && (
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => setShowClearAllDialog(true)}
-                            className="text-xs w-full sm:w-auto"
-                          >
-                            <Trash2 className="h-3 w-3 mr-1" />
-                            Clear All
-                          </Button>
-                        )}
-                      </motion.div>
-                    )}
-                  </div>
+                      </div>
+                    </motion.div>
+                  )}
                 </div>
+                
+                {/* Controls Section - Optimized for Mobile */}
+                <motion.div 
+                  className="flex flex-col space-y-3 sm:flex-row sm:items-center sm:justify-between sm:space-y-0 mb-4 motion-safe"
+                  initial={{ opacity: 0, y: 6 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.12, duration: 0.18, ease: [0.25, 0.46, 0.45, 0.94] }}
+                  style={{ willChange: 'transform, opacity' }}
+                >
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.98 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ delay: 0.15, duration: 0.15, ease: [0.25, 0.46, 0.45, 0.94] }}
+                    className="w-full sm:w-auto motion-safe"
+                    style={{ willChange: 'transform, opacity' }}
+                  >
+                    <ViewSwitcher
+                      value={groupByCategory ? "categories" : "grid"}
+                      onValueChange={(value) => setGroupByCategory(value === 'categories')}
+                    />
+                  </motion.div>
+                  
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.98 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ delay: 0.18, duration: 0.15, ease: [0.25, 0.46, 0.45, 0.94] }}
+                    className="relative z-10 w-full sm:w-auto motion-safe"
+                    style={{ willChange: 'transform, opacity' }}
+                  >
+                    <SortDropdown
+                      value={sortBy}
+                      onValueChange={setSortBy}
+                      disabled={viewTasks.length === 0}
+                    />
+                  </motion.div>
+                  
+                  {currentView === 'completed' && stats.completed > 0 && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setShowClearAllDialog(true)}
+                      className="text-xs w-full sm:w-auto text-red-600 border-red-200 hover:bg-red-50 hover:text-red-700 hover:border-red-300 dark:text-red-400 dark:border-red-800 dark:hover:bg-red-950/20 dark:hover:text-red-300 dark:hover:border-red-700"
+                    >
+                      <Trash2 className="h-3 w-3 mr-1" />
+                      Clear All
+                    </Button>
+                  )}
+                </motion.div>
               </motion.div>
             )}
 
@@ -551,16 +554,7 @@ export function TaskManager() {
         </AnimatePresence>
       </main>
 
-      <div className="sm:hidden">
-        <BottomNavigation 
-          currentView={currentView}
-          onViewChange={handleViewChange}
-          onAddTask={handleAddTask}
-          onOpenSettings={handleOpenSettings}
-        />
-      </div>
-
-      <div className="hidden sm:block">
+      <div>
         <Dock
           items={[
             {
