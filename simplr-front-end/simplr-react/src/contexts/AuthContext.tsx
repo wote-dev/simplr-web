@@ -2,7 +2,6 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 import type { AuthState, AuthType, User, UseAuthReturn } from '@/types';
 import { supabase } from '@/lib/supabase';
 import { UserPreferencesService } from '@/lib/userPreferences';
-import { OrganizationService } from '@/services/organizationService';
 import type { User as SupabaseUser } from '@supabase/supabase-js';
 
 const AuthContext = createContext<UseAuthReturn | undefined>(undefined);
@@ -328,37 +327,12 @@ export function AuthProvider({ children }: AuthProviderProps) {
     }
   };
 
-  const joinOrganization = async (inviteCode: string): Promise<void> => {
-    if (!authState.user) {
-      throw new Error('User must be authenticated to join an organization');
-    }
-
-    try {
-      const organization = await OrganizationService.joinOrganization(inviteCode);
-      
-      // Update user's current organization
-      const updatedUser: User = {
-        ...authState.user,
-        currentOrganizationId: organization.id
-      };
-      
-      setAuthState(prev => ({
-        ...prev,
-        user: updatedUser
-      }));
-    } catch (error) {
-      console.error('Error joining organization:', error);
-      throw error;
-    }
-  };
-
   const value: UseAuthReturn = {
     ...authState,
     signInWithGoogle,
     signInWithGitHub,
     signInAsGuest,
     signOut,
-    joinOrganization,
   };
 
   return (
