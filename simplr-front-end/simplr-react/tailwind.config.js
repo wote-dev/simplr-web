@@ -29,6 +29,13 @@ export default {
           'sans-serif'
         ]
       },
+      letterSpacing: {
+        'tight-heading': '-0.09em', // -9%
+      },
+      fontWeight: {
+        'extra-bold': '800',
+        'black': '900',
+      },
       colors: {
         primary: {
           DEFAULT: 'hsl(var(--primary))',
