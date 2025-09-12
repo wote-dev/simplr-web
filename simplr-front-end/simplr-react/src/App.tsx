@@ -4,7 +4,6 @@ import { motion } from 'framer-motion';
 import { ThemeProvider } from '@/contexts/ThemeContext';
 import { AuthProvider, useAuth } from '@/contexts/AuthContext';
 import { ToastProvider } from '@/contexts/ToastContext';
-import { OrganizationProvider } from '@/contexts/OrganizationContext';
 import { Toaster } from '@/components/ui/toaster';
 import { LoginOverlay } from '@/components/auth/LoginOverlay';
 import { AuthCallback } from '@/components/auth/AuthCallback';
@@ -81,14 +80,12 @@ function App() {
     <Router>
       <ThemeProvider defaultTheme="system">
         <AuthProvider>
-          <OrganizationProvider>
-            <ToastProvider>
-              <div className="min-h-screen bg-background text-foreground">
-                <AppContent />
-                <Toaster />
-              </div>
-            </ToastProvider>
-          </OrganizationProvider>
+          <ToastProvider>
+            <div className="min-h-screen bg-background text-foreground">
+              <AppContent />
+              <Toaster />
+            </div>
+          </ToastProvider>
         </AuthProvider>
       </ThemeProvider>
     </Router>

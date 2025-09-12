@@ -1,4 +1,4 @@
-import React, { createContext, useContext } from 'react';
+import React, { createContext } from 'react';
 import { toast as shadcnToast } from '@/hooks/use-toast';
 import { CheckCircle, AlertCircle, Info, AlertTriangle } from 'lucide-react';
 import type { NotificationType } from '@/types';
@@ -80,12 +80,4 @@ export function ToastProvider({ children }: ToastProviderProps) {
       {children}
     </ToastContext.Provider>
   );
-}
-
-export function useToast(): ToastContextType {
-  const context = useContext(ToastContext);
-  if (context === undefined) {
-    throw new Error('useToast must be used within a ToastProvider');
-  }
-  return context;
 }

@@ -3,7 +3,6 @@ import { useTasks, sortTasks, type SortOption } from '@/hooks/useTasks';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useToast } from '@/hooks/useToastContext';
 import { useAuth } from '@/contexts/AuthContext';
-import { useOrganization } from '@/contexts/OrganizationContext';
 import { UserPreferencesService } from '@/lib/userPreferences';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -26,14 +25,13 @@ import { TaskModal } from '@/components/tasks/TaskModal';
 import { TaskCard } from '@/components/tasks/TaskCard';
 import { CategoryGroupedTasks } from '@/components/tasks/CategoryGroupedTasks';
 import { SettingsModal } from '@/components/settings/SettingsModal';
-import { OrganizationManagement } from '@/components/organization/OrganizationManagement';
-import { Plus, CheckCircle, Clock, Calendar, Home, Trash2, Building2 } from 'lucide-react';
+import { Plus, CheckCircle, Clock, Calendar, Home, Trash2 } from 'lucide-react';
 import { AnimatedThemeToggler } from '@/components/magicui/animated-theme-toggler';
 import { KeyboardHint } from '@/components/ui/keyboard-hint';
 import Dock from '@/components/Dock';
 import type { TaskView, Task } from '@/types';
-import lightLogo from '@/assets/simplr-web-lighttheme.png';
-import darkLogo from '@/assets/simplr-web-darktheme.png';
+import lightLogo from '@/assets/spaces-simplr-light.png';
+import darkLogo from '@/assets/spaces-simplr.png';
 
 export function TaskManager() {
   const { 
@@ -50,7 +48,6 @@ export function TaskManager() {
   const { resolvedTheme } = useTheme();
   const { showToast } = useToast();
   const { user } = useAuth();
-  const { currentOrganization } = useOrganization();
 
   const [currentView, setCurrentView] = useState<TaskView>('today');
   const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
@@ -58,7 +55,6 @@ export function TaskManager() {
   const [showClearAllDialog, setShowClearAllDialog] = useState(false);
   const [groupByCategory, setGroupByCategory] = useState(false);
   const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
-  const [isOrganizationModalOpen, setIsOrganizationModalOpen] = useState(false);
   const [sortBy, setSortBy] = useState<SortOption>('latest');
   const [preferencesLoaded, setPreferencesLoaded] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
@@ -284,13 +280,13 @@ export function TaskManager() {
                 <img 
                   src={darkLogo} 
                   alt="Simplr" 
-                  className="h-6 sm:h-8 w-auto object-contain"
+                  className="h-8 sm:h-10 w-auto object-contain"
                 />
               ) : (
                 <img 
                   src={lightLogo} 
                   alt="Simplr" 
-                  className="h-6 sm:h-8 w-auto object-contain"
+                  className="h-8 sm:h-10 w-auto object-contain"
                 />
               )}
               <Badge 
@@ -311,15 +307,6 @@ export function TaskManager() {
               className="hidden sm:flex"
             />
             <AnimatedThemeToggler className="h-8 w-8 sm:h-9 sm:w-9 p-1.5 sm:p-2 hover:bg-gray-100 dark:hover:bg-accent hover:text-gray-700 dark:hover:text-accent-foreground rounded-md transition-colors [&>svg]:h-4 [&>svg]:w-4 sm:[&>svg]:h-5 sm:[&>svg]:w-5" />
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => setIsOrganizationModalOpen(true)}
-              className="h-8 w-8 sm:h-9 sm:w-9 p-1.5 sm:p-2 hover:bg-gray-100 dark:hover:bg-accent hover:text-gray-700 dark:hover:text-accent-foreground rounded-md transition-colors"
-              title={currentOrganization ? `Current: ${currentOrganization.name}` : 'Manage Organizations'}
-            >
-              <Building2 className="h-4 w-4 sm:h-5 sm:w-5" />
-            </Button>
             <Button
               variant="ghost"
               size="icon"
@@ -641,31 +628,6 @@ export function TaskManager() {
         isOpen={isSettingsModalOpen} 
         onClose={() => setIsSettingsModalOpen(false)} 
       />
-
-      {isOrganizationModalOpen && (
-        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-background border border-border rounded-lg shadow-lg max-w-4xl w-full max-h-[90vh] overflow-hidden">
-            <div className="flex items-center justify-between p-6 border-b border-border">
-              <div className="flex items-center space-x-2">
-                <Building2 className="h-5 w-5 text-primary" />
-                <h2 className="text-lg font-semibold">Organization Management</h2>
-              </div>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => setIsOrganizationModalOpen(false)}
-                className="h-8 w-8"
-              >
-                <span className="sr-only">Close</span>
-                ×
-              </Button>
-            </div>
-            <div className="p-6 overflow-y-auto max-h-[calc(90vh-120px)]">
-              <OrganizationManagement />
-            </div>
-          </div>
-        </div>
-      )}
 
       <AlertDialog open={showClearAllDialog}>
         <AlertDialogContent>
