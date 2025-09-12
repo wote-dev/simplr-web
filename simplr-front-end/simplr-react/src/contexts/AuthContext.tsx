@@ -1,8 +1,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import type { AuthState, AuthType, User, UseAuthReturn, Organization } from '@/types';
+import type { AuthState, AuthType, User, UseAuthReturn } from '@/types';
 import { supabase } from '@/lib/supabase';
 import { UserPreferencesService } from '@/lib/userPreferences';
-import { OrganizationService } from '@/lib/organizationService';
 import type { User as SupabaseUser } from '@supabase/supabase-js';
 
 const AuthContext = createContext<UseAuthReturn | undefined>(undefined);
@@ -19,8 +18,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
     isLoading: true,
     error: null,
   });
-  
-  const [currentOrganization, setCurrentOrganizationState] = useState<Organization | null>(null);
 
   // Initialize authentication state from Supabase or localStorage
   useEffect(() => {
@@ -72,18 +69,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
             isLoading: false,
             error: null,
           });
-          
-          // Load user's organizations and set current organization
-          try {
-            const organizations = await OrganizationService.getUserOrganizations(user.id);
-            if (organizations.length > 0) {
-              // Set the first organization as current by default
-              // In a real app, you might want to load the user's last selected organization
-              setCurrentOrganizationState(organizations[0]);
-            }
-          } catch (error) {
-            console.error('Failed to load user organizations:', error);
-          }
         } else {
           // Check for local guest user when no Supabase session
           const localGuestUser = localStorage.getItem('simplr_guest_user');
@@ -135,25 +120,14 @@ export function AuthProvider({ children }: AuthProviderProps) {
             isLoading: false,
             error: null,
           });
-          
-          // Load user's organizations and set current organization
-          try {
-            const organizations = await OrganizationService.getUserOrganizations(user.id);
-            if (organizations.length > 0) {
-              setCurrentOrganizationState(organizations[0]);
-            }
-          } catch (error) {
-            console.error('Failed to load user organizations:', error);
-          }
         } else if (event === 'SIGNED_OUT') {
           setAuthState({
-        user: null,
-        authType: null,
-        isAuthenticated: false,
-        isLoading: false,
-        error: null,
-      });
-          setCurrentOrganizationState(null);
+            user: null,
+            authType: null,
+            isAuthenticated: false,
+            isLoading: false,
+            error: null,
+          });
         }
       }
     );
@@ -329,7 +303,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
           isLoading: false,
           error: null,
         });
-        setCurrentOrganizationState(null);
         return;
       }
       
@@ -354,34 +327,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
     }
   };
 
-  // Function to set current organization by ID
-  const setCurrentOrganization = async (organizationId: string | null) => {
-    if (!organizationId) {
-      setCurrentOrganizationState(null);
-      return;
-    }
-    
-    if (!authState.user?.id) {
-      throw new Error('User must be authenticated to set organization');
-    }
-    
-    try {
-      const organization = await OrganizationService.getOrganization(organizationId);
-      if (organization) {
-        setCurrentOrganizationState(organization);
-      } else {
-        throw new Error('Organization not found');
-      }
-    } catch (error) {
-      console.error('Failed to set current organization:', error);
-      throw error;
-    }
-  };
-
   const value: UseAuthReturn = {
     ...authState,
-    currentOrganization,
-    setCurrentOrganization,
     signInWithGoogle,
     signInWithGitHub,
     signInAsGuest,
