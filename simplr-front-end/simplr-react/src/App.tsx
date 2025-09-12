@@ -3,12 +3,14 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { motion } from 'framer-motion';
 import { ThemeProvider } from '@/contexts/ThemeContext';
 import { AuthProvider, useAuth } from '@/contexts/AuthContext';
+import { OrganizationProvider } from '@/contexts/OrganizationContext';
 import { ToastProvider } from '@/contexts/ToastContext';
 import { Toaster } from '@/components/ui/toaster';
 import { LoginOverlay } from '@/components/auth/LoginOverlay';
 import { AuthCallback } from '@/components/auth/AuthCallback';
 import { TaskManager } from '@/components/tasks/TaskManager';
 import { PrivacyPolicyPage } from '@/pages/PrivacyPolicyPage';
+import { OrganizationTestPage } from '@/pages/OrganizationTestPage';
 
 function AppContent() {
   const { isAuthenticated, isLoading } = useAuth();
@@ -67,6 +69,7 @@ function AppContent() {
   return (
     <Routes>
       <Route path="/privacy" element={<PrivacyPolicyPage />} />
+      <Route path="/test-organizations" element={<OrganizationTestPage />} />
       <Route path="/" element={
         !isAuthenticated ? <LoginOverlay /> : <TaskManager />
       } />
@@ -81,10 +84,12 @@ function App() {
       <ThemeProvider defaultTheme="system">
         <AuthProvider>
           <ToastProvider>
-            <div className="min-h-screen bg-background text-foreground">
-              <AppContent />
-              <Toaster />
-            </div>
+            <OrganizationProvider>
+              <div className="min-h-screen bg-background text-foreground">
+                <AppContent />
+                <Toaster />
+              </div>
+            </OrganizationProvider>
           </ToastProvider>
         </AuthProvider>
       </ThemeProvider>
