@@ -16,6 +16,7 @@ export interface Task {
   reminderEnabled?: boolean;
   reminderDateTime?: string | null;
   reminderSent?: boolean;
+  organizationId?: string | null;
   createdAt?: string;
   updatedAt?: string;
 }
@@ -38,12 +39,42 @@ export interface CategoryConfig {
 
 export type TaskView = 'today' | 'upcoming' | 'completed';
 
+// Organization Types
+export interface Organization {
+  id: string;
+  name: string;
+  code: string;
+  description?: string;
+  ownerId: string;
+  settings: Record<string, unknown>;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface UserOrganization {
+  id: string;
+  userId: string;
+  organizationId: string;
+  role: OrganizationRole;
+  joinedAt: string;
+}
+
+export type OrganizationRole = 'owner' | 'admin' | 'member';
+
+export interface OrganizationInvite {
+  code: string;
+  organizationId: string;
+  organizationName: string;
+  expiresAt?: string;
+}
+
 // Authentication Types
 export interface User {
   id: string;
   name: string;
   email?: string;
   avatar?: string;
+  currentOrganizationId?: string | null;
 }
 
 export type AuthType = 'google' | 'github' | 'guest';
@@ -145,10 +176,29 @@ export interface UseTasksReturn {
 }
 
 export interface UseAuthReturn extends AuthState {
+  currentOrganization: Organization | null;
   signInWithGoogle: () => Promise<void>;
   signInWithGitHub: () => Promise<void>;
   signInAsGuest: () => Promise<void>;
   signOut: () => Promise<void>;
+  setCurrentOrganization: (organizationId: string | null) => void;
+}
+
+// Organization Hook Types
+export interface UseOrganizationsReturn {
+  organizations: Organization[];
+  currentOrganization: Organization | null;
+  userOrganizations: UserOrganization[];
+  createOrganization: (data: Omit<Organization, 'id' | 'code' | 'createdAt' | 'updatedAt'>) => Promise<Organization>;
+  joinOrganization: (code: string) => Promise<void>;
+  leaveOrganization: (organizationId: string) => Promise<void>;
+  updateOrganization: (id: string, updates: Partial<Organization>) => Promise<void>;
+  deleteOrganization: (id: string) => Promise<void>;
+  validateInviteCode: (code: string) => Promise<OrganizationInvite | null>;
+  generateNewCode: (organizationId: string) => Promise<string>;
+  switchToOrganization: (organizationId: string | null) => Promise<void>;
+  isLoading: boolean;
+  error: string | null;
 }
 
 export interface UseThemeReturn extends ThemeState {
