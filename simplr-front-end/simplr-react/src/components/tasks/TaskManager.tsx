@@ -6,6 +6,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { UserPreferencesService } from '@/lib/userPreferences';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
 import { ViewSwitcher } from '@/components/ui/ViewSwitcher';
 import { SortDropdown } from '@/components/ui/SortDropdown';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -288,6 +289,12 @@ export function TaskManager() {
                   className="h-6 sm:h-8 w-auto object-contain"
                 />
               )}
+              <Badge 
+                variant="outline" 
+                className="text-xs font-medium px-2 py-0.5 bg-transparent text-primary border-primary/30 hover:bg-primary/5"
+              >
+                Beta
+              </Badge>
             </div>
           </div>
 
