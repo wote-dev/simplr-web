@@ -30,8 +30,8 @@ import { AnimatedThemeToggler } from '@/components/magicui/animated-theme-toggle
 import { KeyboardHint } from '@/components/ui/keyboard-hint';
 import Dock from '@/components/Dock';
 import type { TaskView, Task } from '@/types';
-import lightLogo from '@/assets/spaces-simplr-light.png';
-import darkLogo from '@/assets/spaces-simplr.png';
+import lightLogo from '@/assets/spaces-light.png';
+import darkLogo from '@/assets/spaces-dark.png';
 
 export function TaskManager() {
   const { 
@@ -280,13 +280,13 @@ export function TaskManager() {
                 <img 
                   src={darkLogo} 
                   alt="Simplr" 
-                  className="h-8 sm:h-10 w-auto object-contain"
+                  className="h-6 sm:h-8 w-auto object-contain"
                 />
               ) : (
                 <img 
                   src={lightLogo} 
                   alt="Simplr" 
-                  className="h-8 sm:h-10 w-auto object-contain"
+                  className="h-6 sm:h-8 w-auto object-contain"
                 />
               )}
               <Badge 
