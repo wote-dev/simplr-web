@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { InviteCodeForm } from './InviteCodeForm';
 import { CreateOrganizationForm } from './CreateOrganizationForm';
 

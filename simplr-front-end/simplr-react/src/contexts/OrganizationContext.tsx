@@ -4,9 +4,7 @@ import { useAuth } from './AuthContext';
 import { ToastContext } from './ToastContext';
 import type {
   Organization,
-  OrganizationMember,
   Team,
-  TeamMember,
   OrganizationRole,
   TeamRole,
   OrganizationContextValue,
@@ -226,7 +224,7 @@ export function OrganizationProvider({ children }: OrganizationProviderProps) {
   /**
    * Invite member to organization
    */
-  const inviteMember = useCallback(async (email: string, role: OrganizationRole) => {
+  const inviteMember = useCallback(async (_email: string, _role: OrganizationRole) => {
     if (!state.currentOrganization) throw new Error('No current organization');
     
     setState(prev => ({ ...prev, isLoading: true, error: null }));

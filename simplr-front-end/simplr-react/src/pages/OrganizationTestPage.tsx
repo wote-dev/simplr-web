@@ -1,11 +1,11 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { OrganizationOnboarding } from '../components/organization/OrganizationOnboarding';
 import { useAuth } from '../contexts/AuthContext';
 import { useOrganization } from '../contexts/OrganizationContext';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Badge } from '../components/ui/badge';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '../components/ui/alert-dialog';
+
 import { Avatar, AvatarFallback } from '../components/ui/avatar';
 import { Building2, Users, Crown, UserPlus, LogOut, TestTube, Trash2 } from 'lucide-react';
 import type { Organization } from '../types';
@@ -40,7 +40,7 @@ export function OrganizationTestPage() {
     }
   };
 
-  const handleLeaveOrganization = async (orgId: string) => {
+  const handleLeaveOrganization = async (_orgId: string) => {
     // Note: leaveOrganization method not yet implemented in OrganizationContext
     addTestResult(`⚠️ Leave organization feature not yet implemented`);
   };
