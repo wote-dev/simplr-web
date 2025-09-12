@@ -1,13 +1,12 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Loader2, Building2, Users, ArrowRight } from 'lucide-react';
 import { useOrganizations } from '@/hooks/useOrganizations';
 import { useToast } from '@/hooks/useToastContext';
-import { cn } from '@/lib/utils';
 
 interface OrganizationJoinModalProps {
   isOpen: boolean;
@@ -18,7 +17,7 @@ interface OrganizationJoinModalProps {
 export function OrganizationJoinModal({ isOpen, onClose, onSuccess }: OrganizationJoinModalProps) {
   const [organizationCode, setOrganizationCode] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const { joinOrganization, validateInviteCode } = useOrganizations();
+  const { joinOrganization } = useOrganizations();
   const { showToast } = useToast();
 
   const handleJoinOrganization = async () => {

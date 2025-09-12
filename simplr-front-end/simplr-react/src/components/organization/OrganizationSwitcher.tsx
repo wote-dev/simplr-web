@@ -49,7 +49,7 @@ export function OrganizationSwitcher({ className, showLabel = true }: Organizati
     }
   };
 
-  const handleCreateSuccess = (organization: Organization) => {
+  const handleCreateSuccess = () => {
     setShowCreateModal(false);
     // The organization will be automatically set as current
   };

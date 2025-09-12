@@ -16,7 +16,7 @@ interface OrganizationOnboardingProps {
 export function OrganizationOnboarding({ className, onComplete }: OrganizationOnboardingProps) {
   const [showJoinModal, setShowJoinModal] = useState(false);
   const [showCreateModal, setShowCreateModal] = useState(false);
-  const { user } = useAuth();
+  useAuth();
 
   const handleJoinSuccess = () => {
     setShowJoinModal(false);
