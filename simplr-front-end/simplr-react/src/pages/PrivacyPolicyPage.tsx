@@ -39,7 +39,7 @@ export function PrivacyPolicyPage() {
         <div className="space-y-4">
           <h2 className="text-2xl font-semibold text-foreground">Your Privacy Matters</h2>
           <p className="text-muted-foreground leading-relaxed">
-            Simplr Web is designed with privacy and security at its core. This document explains how we handle your data,
+            Spaces is designed with privacy and security at its core. This document explains how we handle your data,
             what information we collect, and how we protect your privacy.
           </p>
         </div>
@@ -286,7 +286,7 @@ export function PrivacyPolicyPage() {
             <div className="space-y-3">
               <h4 className="text-lg font-semibold">Acceptable Use</h4>
               <p className="text-muted-foreground leading-relaxed">
-                Simplr Web is intended for personal and professional task management. Please use the service responsibly
+                Spaces is intended for personal and professional task management. Please use the service responsibly
                 and in accordance with applicable laws.
               </p>
             </div>
@@ -294,7 +294,7 @@ export function PrivacyPolicyPage() {
             <div className="space-y-3">
               <h4 className="text-lg font-semibold">Service Availability</h4>
               <p className="text-muted-foreground leading-relaxed">
-                While we strive for 99.9% uptime, Simplr Web is provided "as is" without warranties. We recommend
+                While we strive for 99.9% uptime, Spaces is provided "as is" without warranties. We recommend
                 regular data exports as a backup measure.
               </p>
             </div>
@@ -325,7 +325,7 @@ export function PrivacyPolicyPage() {
             Last updated: {new Date().toLocaleDateString()}
           </p>
           <p className="text-sm text-muted-foreground">
-            Simplr Web v1.0 (Alpha)
+            Spaces v1.0 (Alpha)
           </p>
         </div>
       </div>

@@ -9,6 +9,7 @@ import { LoginOverlay } from '@/components/auth/LoginOverlay';
 import { AuthCallback } from '@/components/auth/AuthCallback';
 import { TaskManager } from '@/components/tasks/TaskManager';
 import { PrivacyPolicyPage } from '@/pages/PrivacyPolicyPage';
+import { WaitlistLanding } from '@/components/landing/WaitlistLanding';
 
 function AppContent() {
   const { isAuthenticated, isLoading } = useAuth();
@@ -66,6 +67,7 @@ function AppContent() {
 
   return (
     <Routes>
+      <Route path="/waitlist" element={<WaitlistLanding />} />
       <Route path="/privacy" element={<PrivacyPolicyPage />} />
       <Route path="/" element={
         !isAuthenticated ? <LoginOverlay /> : <TaskManager />

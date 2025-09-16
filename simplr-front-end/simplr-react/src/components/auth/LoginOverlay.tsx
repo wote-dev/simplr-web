@@ -58,7 +58,7 @@ export function LoginOverlay({ className }: LoginOverlayProps) {
         <CardHeader className="text-center space-y-4">
           <div className="mx-auto w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
             <img 
-              src="/favicon4.png" 
+              src="/favicon-spaces.png" 
               alt="Simplr" 
               className="w-10 h-10 object-contain"
               onError={(e) => {
@@ -74,7 +74,7 @@ export function LoginOverlay({ className }: LoginOverlayProps) {
           </div>
           <div>
             <CardTitle className="text-2xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
-              Welcome to Simplr Web
+              Welcome to Spaces
             </CardTitle>
             <CardDescription className="text-muted-foreground mt-2">
               Your simple, powerful task manager
