@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
@@ -11,6 +12,14 @@ import {
 } from 'lucide-react';
 
 export default function MobileRestriction() {
+  // Prevent scrolling when component is mounted
+  useEffect(() => {
+    document.body.classList.add('mobile-restriction-active');
+    return () => {
+      document.body.classList.remove('mobile-restriction-active');
+    };
+  }, []);
+
   const features = [
     {
       icon: Zap,
@@ -30,15 +39,15 @@ export default function MobileRestriction() {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-accent/5 relative overflow-hidden">
+    <div className="h-screen bg-gradient-to-br from-background via-background to-accent/5 relative overflow-hidden">
       {/* Background Elements */}
       <div className="absolute inset-0 overflow-hidden">
         <div className="absolute top-1/4 -left-4 w-24 h-24 bg-primary/10 rounded-full blur-xl" />
         <div className="absolute bottom-1/4 -right-4 w-32 h-32 bg-accent/10 rounded-full blur-xl" />
       </div>
 
-      <div className="relative z-10 flex flex-col items-center justify-center min-h-screen px-4 pt-safe-top pb-safe-bottom">
-        <div className="w-full max-w-sm mx-auto text-center space-y-4">
+      <div className="relative z-10 flex flex-col items-center justify-center h-screen px-4 pt-safe-top pb-safe-bottom overflow-hidden">
+        <div className="w-full max-w-sm mx-auto text-center space-y-3 flex flex-col justify-center">
           
           {/* Header Badge */}
           <motion.div
@@ -60,7 +69,7 @@ export default function MobileRestriction() {
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.1, ease: [0.25, 0.46, 0.45, 0.94] }}
-            className="space-y-4"
+            className="space-y-3"
           >
             {/* Icon */}
             <div className="flex justify-center">
@@ -94,7 +103,7 @@ export default function MobileRestriction() {
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.2, ease: [0.25, 0.46, 0.45, 0.94] }}
-            className="grid grid-cols-1 gap-3"
+            className="grid grid-cols-1 gap-2"
           >
             {features.map((feature, index) => (
               <motion.div

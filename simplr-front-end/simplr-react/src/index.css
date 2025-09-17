@@ -150,6 +150,12 @@
   .modal-open {
     overflow: hidden;
   }
+
+  /* Prevent scrolling on mobile restriction page */
+  .mobile-restriction-active {
+    overflow: hidden;
+    height: 100vh;
+  }
 }
 
 @layer base {
