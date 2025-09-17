@@ -1,5 +1,17 @@
 import { supabase } from './supabase';
-import type { Task, TaskCategory, ChecklistItem, User } from '@/types';
+import type { 
+  Task, 
+  TaskCategory, 
+  ChecklistItem, 
+  User, 
+  Team, 
+  TeamMember, 
+  TeamInvite, 
+  TeamRole, 
+  TeamStatus, 
+  TeamStats,
+  CreateTeamData 
+} from '@/types';
 
 // Database types that match Supabase schema
 export interface DatabaseTask {
@@ -14,6 +26,9 @@ export interface DatabaseTask {
   reminder_enabled?: boolean;
   reminder_datetime?: string | null;
   reminder_sent?: boolean;
+  team_id?: string | null;
+  is_team_task?: boolean;
+  assigned_to?: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -25,6 +40,40 @@ export interface DatabaseUserProfile {
   preferences: Record<string, unknown>;
   created_at: string;
   updated_at: string;
+}
+
+export interface DatabaseTeam {
+  id: string;
+  name: string;
+  description?: string;
+  avatar_url?: string;
+  join_code: string;
+  status: TeamStatus;
+  max_members: number;
+  created_by?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface DatabaseTeamMember {
+  id: string;
+  team_id: string;
+  user_id: string;
+  role: TeamRole;
+  joined_at: string;
+  invited_by?: string;
+}
+
+export interface DatabaseTeamInvite {
+  id: string;
+  team_id: string;
+  invited_by: string;
+  email?: string;
+  join_code: string;
+  expires_at: string;
+  used_at?: string;
+  used_by?: string;
+  created_at: string;
 }
 
 // Convert database task to app task format
@@ -40,6 +89,9 @@ function mapDatabaseTaskToTask(dbTask: DatabaseTask): Task {
     reminderEnabled: dbTask.reminder_enabled ?? false,
     reminderDateTime: dbTask.reminder_datetime ?? null,
     reminderSent: dbTask.reminder_sent ?? false,
+    team_id: dbTask.team_id ?? undefined,
+    is_team_task: dbTask.is_team_task ?? false,
+    assigned_to: dbTask.assigned_to ?? undefined,
     createdAt: dbTask.created_at,
     updatedAt: dbTask.updated_at,
   };
@@ -58,6 +110,9 @@ function mapTaskToDatabaseTask(task: Omit<Task, 'id' | 'createdAt' | 'updatedAt'
     reminder_enabled: task.reminderEnabled ?? false,
     reminder_datetime: task.reminderDateTime && task.reminderDateTime.trim() !== '' ? task.reminderDateTime : null,
     reminder_sent: task.reminderSent ?? false,
+    team_id: task.team_id ?? null,
+    is_team_task: task.is_team_task ?? false,
+    assigned_to: task.assigned_to ?? null,
   };
 }
 
@@ -357,5 +412,433 @@ export class DatabaseService {
     return () => {
       subscription.unsubscribe();
     };
+  }
+
+  // Team Management Operations
+  static async createTeam(data: CreateTeamData, userId: string): Promise<Team> {
+    try {
+      // Generate a unique join code
+      const joinCode = Math.random().toString(36).substring(2, 8).toUpperCase();
+      
+      const { data: team, error } = await supabase
+        .from('teams')
+        .insert({
+          name: data.name,
+          description: data.description,
+          join_code: joinCode,
+          max_members: data.max_members || 10,
+          created_by: userId,
+          status: 'active' as TeamStatus,
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      // Add creator as owner
+      await supabase
+        .from('team_members')
+        .insert({
+          team_id: team.id,
+          user_id: userId,
+          role: 'owner' as TeamRole,
+        });
+
+      return {
+        id: team.id,
+        name: team.name,
+        description: team.description,
+        avatar_url: team.avatar_url,
+        join_code: team.join_code,
+        status: team.status,
+        max_members: team.max_members,
+        created_by: team.created_by,
+        created_at: team.created_at,
+        updated_at: team.updated_at,
+        member_count: 1,
+        user_role: 'owner',
+      };
+    } catch (error) {
+      console.error('Error creating team:', error);
+      throw new Error('Failed to create team');
+    }
+  }
+
+  static async joinTeam(joinCode: string, userId: string): Promise<Team> {
+    try {
+      // Find team by join code
+      const { data: team, error: teamError } = await supabase
+        .from('teams')
+        .select('*')
+        .eq('join_code', joinCode)
+        .eq('status', 'active')
+        .single();
+
+      if (teamError || !team) {
+        throw new Error('Invalid join code or team not found');
+      }
+
+      // Check if user is already a member
+      const { data: existingMember } = await supabase
+        .from('team_members')
+        .select('id')
+        .eq('team_id', team.id)
+        .eq('user_id', userId)
+        .single();
+
+      if (existingMember) {
+        throw new Error('You are already a member of this team');
+      }
+
+      // Check team capacity
+      const { count: memberCount } = await supabase
+        .from('team_members')
+        .select('*', { count: 'exact', head: true })
+        .eq('team_id', team.id);
+
+      if (memberCount && memberCount >= team.max_members) {
+        throw new Error('Team is at maximum capacity');
+      }
+
+      // Add user to team
+      await supabase
+        .from('team_members')
+        .insert({
+          team_id: team.id,
+          user_id: userId,
+          role: 'member' as TeamRole,
+        });
+
+      return {
+        id: team.id,
+        name: team.name,
+        description: team.description,
+        avatar_url: team.avatar_url,
+        join_code: team.join_code,
+        status: team.status,
+        max_members: team.max_members,
+        created_by: team.created_by,
+        created_at: team.created_at,
+        updated_at: team.updated_at,
+        member_count: (memberCount || 0) + 1,
+        user_role: 'member',
+      };
+    } catch (error) {
+      console.error('Error joining team:', error);
+      throw error;
+    }
+  }
+
+  static async getUserTeams(userId: string): Promise<Team[]> {
+    try {
+      const { data, error } = await supabase
+        .from('team_members')
+        .select(`
+          role,
+          teams!inner (
+            id,
+            name,
+            description,
+            avatar_url,
+            join_code,
+            status,
+            max_members,
+            created_by,
+            created_at,
+            updated_at
+          )
+        `)
+        .eq('user_id', userId);
+
+      if (error) throw error;
+
+      const teams: Team[] = [];
+      for (const item of data || []) {
+        const team = item.teams as any as DatabaseTeam;
+        
+        // Get member count
+        const { count: memberCount } = await supabase
+          .from('team_members')
+          .select('*', { count: 'exact', head: true })
+          .eq('team_id', team.id);
+
+        teams.push({
+          id: team.id,
+          name: team.name,
+          description: team.description,
+          avatar_url: team.avatar_url,
+          join_code: team.join_code,
+          status: team.status,
+          max_members: team.max_members,
+          created_by: team.created_by,
+          created_at: team.created_at,
+          updated_at: team.updated_at,
+          member_count: memberCount || 0,
+          user_role: item.role,
+        });
+      }
+
+      return teams;
+    } catch (error) {
+      console.error('Error fetching user teams:', error);
+      throw new Error('Failed to fetch teams');
+    }
+  }
+
+  static async getTeamMembers(teamId: string): Promise<TeamMember[]> {
+    try {
+      const { data, error } = await supabase
+        .from('team_members')
+        .select(`
+          id,
+          team_id,
+          user_id,
+          role,
+          joined_at,
+          invited_by,
+          user_profiles!inner (
+            id,
+            name,
+            avatar_url
+          )
+        `)
+        .eq('team_id', teamId);
+
+      if (error) throw error;
+
+      return (data || []).map(member => ({
+        id: member.id,
+        team_id: member.team_id,
+        user_id: member.user_id,
+        role: member.role,
+        joined_at: member.joined_at,
+        invited_by: member.invited_by,
+        user: {
+          id: (member.user_profiles as any).id,
+          name: (member.user_profiles as any).name,
+          avatar: (member.user_profiles as any).avatar_url,
+        },
+      }));
+    } catch (error) {
+      console.error('Error fetching team members:', error);
+      throw new Error('Failed to fetch team members');
+    }
+  }
+
+  static async leaveTeam(teamId: string, userId: string): Promise<void> {
+    try {
+      // Check if user is the owner
+      const { data: member } = await supabase
+        .from('team_members')
+        .select('role')
+        .eq('team_id', teamId)
+        .eq('user_id', userId)
+        .single();
+
+      if (member?.role === 'owner') {
+        // Check if there are other members
+        const { count: memberCount } = await supabase
+          .from('team_members')
+          .select('*', { count: 'exact', head: true })
+          .eq('team_id', teamId);
+
+        if (memberCount && memberCount > 1) {
+          throw new Error('Cannot leave team as owner. Transfer ownership or delete the team.');
+        }
+        
+        // If owner is the only member, delete the team
+        await this.deleteTeam(teamId, userId);
+        return;
+      }
+
+      const { error } = await supabase
+        .from('team_members')
+        .delete()
+        .eq('team_id', teamId)
+        .eq('user_id', userId);
+
+      if (error) throw error;
+    } catch (error) {
+      console.error('Error leaving team:', error);
+      throw error;
+    }
+  }
+
+  static async updateTeam(teamId: string, updates: Partial<Team>, userId: string): Promise<void> {
+    try {
+      // Verify user has permission to update team
+      const { data: member } = await supabase
+        .from('team_members')
+        .select('role')
+        .eq('team_id', teamId)
+        .eq('user_id', userId)
+        .single();
+
+      if (!member || !['owner', 'admin'].includes(member.role)) {
+        throw new Error('Insufficient permissions to update team');
+      }
+
+      const { error } = await supabase
+        .from('teams')
+        .update({
+          name: updates.name,
+          description: updates.description,
+          max_members: updates.max_members,
+        })
+        .eq('id', teamId);
+
+      if (error) throw error;
+    } catch (error) {
+      console.error('Error updating team:', error);
+      throw error;
+    }
+  }
+
+  static async deleteTeam(teamId: string, userId: string): Promise<void> {
+    try {
+      // Verify user is owner
+      const { data: member } = await supabase
+        .from('team_members')
+        .select('role')
+        .eq('team_id', teamId)
+        .eq('user_id', userId)
+        .single();
+
+      if (!member || member.role !== 'owner') {
+        throw new Error('Only team owners can delete teams');
+      }
+
+      // Delete team (cascade will handle members and invites)
+      const { error } = await supabase
+        .from('teams')
+        .delete()
+        .eq('id', teamId);
+
+      if (error) throw error;
+    } catch (error) {
+      console.error('Error deleting team:', error);
+      throw error;
+    }
+  }
+
+  static async updateMemberRole(teamId: string, targetUserId: string, newRole: TeamRole, userId: string): Promise<void> {
+    try {
+      // Verify user has permission
+      const { data: member } = await supabase
+        .from('team_members')
+        .select('role')
+        .eq('team_id', teamId)
+        .eq('user_id', userId)
+        .single();
+
+      if (!member || !['owner', 'admin'].includes(member.role)) {
+        throw new Error('Insufficient permissions to update member roles');
+      }
+
+      // Owners can't change their own role
+      if (userId === targetUserId && member.role === 'owner') {
+        throw new Error('Cannot change your own role as owner');
+      }
+
+      const { error } = await supabase
+        .from('team_members')
+        .update({ role: newRole })
+        .eq('team_id', teamId)
+        .eq('user_id', targetUserId);
+
+      if (error) throw error;
+    } catch (error) {
+      console.error('Error updating member role:', error);
+      throw error;
+    }
+  }
+
+  static async removeMember(teamId: string, targetUserId: string, userId: string): Promise<void> {
+    try {
+      // Verify user has permission
+      const { data: member } = await supabase
+        .from('team_members')
+        .select('role')
+        .eq('team_id', teamId)
+        .eq('user_id', userId)
+        .single();
+
+      if (!member || !['owner', 'admin'].includes(member.role)) {
+        throw new Error('Insufficient permissions to remove members');
+      }
+
+      // Can't remove yourself as owner
+      if (userId === targetUserId && member.role === 'owner') {
+        throw new Error('Cannot remove yourself as owner');
+      }
+
+      const { error } = await supabase
+        .from('team_members')
+        .delete()
+        .eq('team_id', teamId)
+        .eq('user_id', targetUserId);
+
+      if (error) throw error;
+    } catch (error) {
+      console.error('Error removing member:', error);
+      throw error;
+    }
+  }
+
+  static async getTeamStats(teamId: string): Promise<TeamStats> {
+    try {
+      // Get member count
+      const { count: memberCount } = await supabase
+        .from('team_members')
+        .select('*', { count: 'exact', head: true })
+        .eq('team_id', teamId);
+
+      // Get task counts
+      const { count: totalTasks } = await supabase
+        .from('tasks')
+        .select('*', { count: 'exact', head: true })
+        .eq('team_id', teamId);
+
+      const { count: completedTasks } = await supabase
+        .from('tasks')
+        .select('*', { count: 'exact', head: true })
+        .eq('team_id', teamId)
+        .eq('completed', true);
+
+      // Get pending invites
+      const { count: pendingInvites } = await supabase
+        .from('team_invites')
+        .select('*', { count: 'exact', head: true })
+        .eq('team_id', teamId)
+        .is('used_at', null)
+        .gt('expires_at', new Date().toISOString());
+
+      return {
+        total_members: memberCount || 0,
+        total_tasks: totalTasks || 0,
+        completed_tasks: completedTasks || 0,
+        pending_invites: pendingInvites || 0,
+      };
+    } catch (error) {
+      console.error('Error fetching team stats:', error);
+      throw new Error('Failed to fetch team statistics');
+    }
+  }
+
+  static async getTeamTasks(teamId: string): Promise<Task[]> {
+    try {
+      const { data, error } = await supabase
+        .from('tasks')
+        .select('*')
+        .eq('team_id', teamId)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+
+      return (data || []).map(mapDatabaseTaskToTask);
+    } catch (error) {
+      console.error('Error fetching team tasks:', error);
+      throw new Error('Failed to fetch team tasks');
+    }
   }
 }
