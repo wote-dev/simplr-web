@@ -10,10 +10,13 @@ import { AuthCallback } from '@/components/auth/AuthCallback';
 import { TaskManager } from '@/components/tasks/TaskManager';
 import { PrivacyPolicyPage } from '@/pages/PrivacyPolicyPage';
 import { WaitlistLanding } from '@/components/landing/WaitlistLanding';
+import { MobileRestriction } from '@/components/mobile/MobileRestriction';
+import { useMobileDetection } from '@/hooks/useMobileDetection';
 
 function AppContent() {
   const { isAuthenticated, isLoading } = useAuth();
   const [isAuthCallback, setIsAuthCallback] = useState(false);
+  const isMobile = useMobileDetection();
 
   useEffect(() => {
     // Check if we're in an auth callback flow
@@ -21,6 +24,11 @@ function AppContent() {
     const isCallback = hashParams.get('access_token') || hashParams.get('error') || hashParams.get('type') === 'recovery';
     setIsAuthCallback(!!isCallback);
   }, []);
+
+  // Show mobile restriction page if on mobile device
+  if (isMobile) {
+    return <MobileRestriction />;
+  }
 
   // Show auth callback handler if we're in callback flow
   if (isAuthCallback) {
