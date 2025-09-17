@@ -10,7 +10,7 @@ import { AuthCallback } from '@/components/auth/AuthCallback';
 import { TaskManager } from '@/components/tasks/TaskManager';
 import { PrivacyPolicyPage } from '@/pages/PrivacyPolicyPage';
 import { WaitlistLanding } from '@/components/landing/WaitlistLanding';
-import { MobileRestriction } from '@/components/mobile/MobileRestriction';
+import MobileRestriction from '@/components/mobile/MobileRestriction';
 import { useMobileDetection } from '@/hooks/useMobileDetection';
 
 function AppContent() {
