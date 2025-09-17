@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useOptimistic, useTransition, useRef 
 import type { Task, TaskCategory, TaskView, UseTasksReturn, ChecklistItem } from '@/types';
 import { useStorage, storageKeys } from './useStorage';
 import { useAuth } from '@/contexts/AuthContext';
+import { useTeam } from '@/contexts/TeamContext';
 import { DatabaseService } from '@/lib/database';
 import { supabase } from '@/lib/supabase';
 import type { RealtimeChannel } from '@supabase/supabase-js';
@@ -72,10 +73,27 @@ const INITIAL_TASKS: Task[] = [
 
 export function useTasks(): UseTasksReturn {
   const [tasks, setTasks] = useState<Task[]>([]);
+  const [teamTasks, setTeamTasks] = useState<Task[]>([]);
   const [optimisticTasks, addOptimisticTask] = useOptimistic(
     tasks,
     (state: Task[], optimisticTask: Task) => {
       // Handle optimistic updates for task operations
+      const existingIndex = state.findIndex(t => t.id === optimisticTask.id);
+      if (existingIndex >= 0) {
+        // Update existing task
+        const newState = [...state];
+        newState[existingIndex] = optimisticTask;
+        return newState;
+      } else {
+        // Add new task
+        return [...state, optimisticTask];
+      }
+    }
+  );
+  const [optimisticTeamTasks, addOptimisticTeamTask] = useOptimistic(
+    teamTasks,
+    (state: Task[], optimisticTask: Task) => {
+      // Handle optimistic updates for team task operations
       const existingIndex = state.findIndex(t => t.id === optimisticTask.id);
       if (existingIndex >= 0) {
         // Update existing task
@@ -94,12 +112,14 @@ export function useTasks(): UseTasksReturn {
   const [isSyncing, setIsSyncing] = useState(false);
   const [connectionStatus, setConnectionStatus] = useState<'disconnected' | 'connecting' | 'connected' | 'error'>('disconnected');
   const channelRef = useRef<RealtimeChannel | null>(null);
+  const teamChannelRef = useRef<RealtimeChannel | null>(null);
   const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const reconnectAttemptsRef = useRef(0);
   const maxReconnectAttempts = 5;
   
   const { saveData, loadData } = useStorage();
   const { user, isAuthenticated, authType } = useAuth();
+  const { currentTeam } = useTeam();
   
   // Determine if we should use Supabase (authenticated non-guest users)
   const useSupabase = isAuthenticated && authType !== 'guest' && user?.id;
@@ -187,6 +207,31 @@ export function useTasks(): UseTasksReturn {
 
     loadTasks();
   }, [loadData, saveData, useSupabase, user?.id]);
+
+  // Load team tasks when current team changes
+  useEffect(() => {
+    const loadTeamTasks = async () => {
+      if (!useSupabase || !user?.id || !currentTeam) {
+        setTeamTasks([]);
+        return;
+      }
+
+      try {
+        setError(null);
+        setIsSyncing(true);
+        const teamTasksData = await DatabaseService.getTeamTasks(currentTeam.id);
+        setTeamTasks(teamTasksData);
+      } catch (err) {
+        console.error('Failed to load team tasks:', err);
+        setError('Failed to load team tasks');
+        setTeamTasks([]);
+      } finally {
+        setIsSyncing(false);
+      }
+    };
+
+    loadTeamTasks();
+  }, [useSupabase, user?.id, currentTeam]);
 
   // Save tasks to storage whenever tasks change
   useEffect(() => {
@@ -401,6 +446,136 @@ export function useTasks(): UseTasksReturn {
     };
   }, [useSupabase, user?.id, startTransition, attemptReconnection]);
 
+  // Set up real-time subscriptions for team tasks
+  useEffect(() => {
+    if (!useSupabase || !user?.id || !currentTeam) {
+      // Clean up any existing team subscription
+      if (teamChannelRef.current) {
+        console.log('Cleaning up team real-time subscription');
+        teamChannelRef.current.unsubscribe();
+        teamChannelRef.current = null;
+      }
+      return;
+    }
+
+    // Clean up existing team subscription before creating a new one
+    if (teamChannelRef.current) {
+      console.log('Cleaning up existing team real-time subscription');
+      teamChannelRef.current.unsubscribe();
+      teamChannelRef.current = null;
+    }
+
+    // Create a unique channel name for this team session
+    const teamChannelName = `team-tasks-${currentTeam.id}-${Date.now()}`;
+    console.log('Setting up team real-time subscription:', teamChannelName);
+
+    // Set up real-time subscription for team tasks
+    const teamChannel = supabase
+      .channel(teamChannelName)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'tasks',
+          filter: `team_id=eq.${currentTeam.id}`,
+        },
+        (payload) => {
+          console.log('Real-time team task change received:', payload.eventType, payload);
+          
+          try {
+            switch (payload.eventType) {
+              case 'INSERT': {
+                const newTask = payload.new as Record<string, unknown>;
+                const mappedTask = mapDatabaseRowToTask(newTask);
+                
+                startTransition(() => {
+                  setTeamTasks(prev => {
+                    // Check if task already exists to avoid duplicates
+                    const exists = prev.some(t => t.id === mappedTask.id);
+                    if (!exists) {
+                      console.log('Adding new team task from real-time:', mappedTask.id, mappedTask.title);
+                      return [mappedTask, ...prev];
+                    }
+                    console.log('Team task already exists, skipping duplicate:', mappedTask.id);
+                    return prev;
+                  });
+                });
+                break;
+              }
+              
+              case 'UPDATE': {
+                const updatedTask = payload.new as Record<string, unknown>;
+                const mappedTask = mapDatabaseRowToTask(updatedTask);
+                
+                startTransition(() => {
+                  setTeamTasks(prev => {
+                    const index = prev.findIndex(t => t.id === mappedTask.id);
+                    if (index !== -1) {
+                      console.log('Updating team task from real-time:', mappedTask.id, mappedTask.title);
+                      const newTasks = [...prev];
+                      newTasks[index] = mappedTask;
+                      return newTasks;
+                    }
+                    console.log('Team task not found for update, adding it:', mappedTask.id);
+                    return [mappedTask, ...prev];
+                  });
+                });
+                break;
+              }
+              
+              case 'DELETE': {
+                const deletedTask = payload.old as Record<string, unknown>;
+                const taskId = deletedTask.id as number;
+                
+                startTransition(() => {
+                  setTeamTasks(prev => {
+                    const filtered = prev.filter(t => t.id !== taskId);
+                    console.log('Deleting team task from real-time:', taskId, 'Remaining team tasks:', filtered.length);
+                    return filtered;
+                  });
+                });
+                break;
+              }
+            }
+          } catch (error) {
+            console.error('Error handling real-time team task change:', error, payload);
+            setError(`Failed to process team task update: ${error instanceof Error ? error.message : 'Unknown error'}`);
+            
+            // Clear the error after a short delay
+            setTimeout(() => {
+              setError(null);
+            }, 5000);
+          }
+        }
+      )
+      .subscribe((status) => {
+        console.log('Team real-time subscription status changed:', status);
+        if (status === 'SUBSCRIBED') {
+          console.log('✅ Successfully subscribed to real-time team task changes');
+        } else if (status === 'CHANNEL_ERROR') {
+          console.error('❌ Team real-time subscription error');
+          setError('Team real-time sync temporarily unavailable');
+        } else if (status === 'CLOSED') {
+          console.log('🔌 Team real-time subscription closed');
+        } else if (status === 'TIMED_OUT') {
+          console.warn('⏰ Team real-time subscription timed out');
+          setError('Team connection timeout - retrying...');
+        }
+      });
+
+    teamChannelRef.current = teamChannel;
+
+    // Cleanup function
+    return () => {
+      if (teamChannelRef.current) {
+        console.log('🧹 Cleaning up team real-time subscription on unmount');
+        teamChannelRef.current.unsubscribe();
+        teamChannelRef.current = null;
+      }
+    };
+  }, [useSupabase, user?.id, currentTeam, startTransition]);
+
   const addTask = useCallback(async (taskData: Omit<Task, 'id' | 'createdAt' | 'updatedAt'>): Promise<void> => {
     try {
       setError(null);
@@ -612,6 +787,64 @@ export function useTasks(): UseTasksReturn {
     }
   }, [useSupabase, user?.id]);
 
+  const addTeamTask = useCallback(async (taskData: Omit<Task, 'id' | 'createdAt' | 'updatedAt'>): Promise<void> => {
+    try {
+      setError(null);
+      
+      if (!currentTeam) {
+        throw new Error('No team selected');
+      }
+      
+      if (!useSupabase || !user?.id) {
+        throw new Error('Team tasks require authentication');
+      }
+
+      console.log('Adding team task:', { taskData, teamId: currentTeam.id, userId: user.id });
+      
+      // Create team task in Supabase
+      const newTask = await DatabaseService.createTeamTask(taskData, currentTeam.id, user.id);
+      console.log('Team task created in Supabase:', newTask);
+      
+      // Schedule reminder if enabled
+      handleReminderScheduling(newTask);
+      
+      // Update team tasks state immediately - the real-time subscription will handle duplicates
+      startTransition(() => {
+        setTeamTasks(prev => {
+          console.log('Previous team tasks before adding:', prev.length);
+          // Check if task already exists to avoid duplicates
+          const exists = prev.some(t => t.id === newTask.id);
+          if (!exists) {
+            console.log('Adding new team task to state:', newTask);
+            const updatedTasks = [newTask, ...prev]; // Add to beginning for better UX
+            console.log('Team tasks after adding new task:', updatedTasks.length, updatedTasks);
+            return updatedTasks;
+          }
+          console.log('Team task already exists in state, skipping:', newTask.id);
+          return prev;
+        });
+      });
+    } catch (err) {
+      console.error('Failed to add team task:', err);
+      const errorMessage = err instanceof Error ? err.message : 'Unknown error occurred';
+      
+      // Provide specific error messages based on error type
+      if (errorMessage.includes('network') || errorMessage.includes('fetch')) {
+        setError('Network error: Unable to save team task. Please check your connection.');
+      } else if (errorMessage.includes('auth') || errorMessage.includes('unauthorized')) {
+        setError('Authentication error: Please sign in again.');
+      } else if (errorMessage.includes('No team selected')) {
+        setError('Please select a team to create team tasks.');
+      } else {
+        setError(`Failed to add team task: ${errorMessage}`);
+      }
+      
+      // Clear error after 10 seconds
+      setTimeout(() => setError(null), 10000);
+      throw err;
+    }
+  }, [useSupabase, user?.id, currentTeam, startTransition]);
+
   const toggleTaskComplete = useCallback(async (id: number): Promise<void> => {
     try {
       setError(null);
@@ -815,7 +1048,9 @@ export function useTasks(): UseTasksReturn {
 
   return {
     tasks: optimisticTasks,
+    teamTasks: optimisticTeamTasks,
     addTask,
+    addTeamTask,
     updateTask,
     deleteTask,
     clearAllCompleted,

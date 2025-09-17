@@ -3,6 +3,7 @@ import { useTasks, sortTasks, type SortOption } from '@/hooks/useTasks';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useToast } from '@/hooks/useToastContext';
 import { useAuth } from '@/contexts/AuthContext';
+import { useTeam } from '@/contexts/TeamContext';
 import { UserPreferencesService } from '@/lib/userPreferences';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -25,7 +26,8 @@ import { TaskModal } from '@/components/tasks/TaskModal';
 import { TaskCard } from '@/components/tasks/TaskCard';
 import { CategoryGroupedTasks } from '@/components/tasks/CategoryGroupedTasks';
 import { SettingsModal } from '@/components/settings/SettingsModal';
-import { Plus, CheckCircle, Clock, Calendar, Home, Trash2 } from 'lucide-react';
+import { TeamSelector } from '@/components/teams/TeamSelector';
+import { Plus, CheckCircle, Clock, Calendar, Home, Trash2, Users } from 'lucide-react';
 import { AnimatedThemeToggler } from '@/components/magicui/animated-theme-toggler';
 import { KeyboardHint } from '@/components/ui/keyboard-hint';
 import Dock from '@/components/Dock';
@@ -36,9 +38,11 @@ import darkLogo from '@/assets/spaces-dark.png';
 export function TaskManager() {
   const { 
     tasks, 
+    teamTasks,
     getTasksForView, 
     isLoading, 
     addTask, 
+    addTeamTask,
     updateTask, 
     deleteTask, 
     clearAllCompleted,
@@ -48,6 +52,7 @@ export function TaskManager() {
   const { resolvedTheme } = useTheme();
   const { showToast } = useToast();
   const { user } = useAuth();
+  const { currentTeam } = useTeam();
 
   const [currentView, setCurrentView] = useState<TaskView>('today');
   const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
@@ -59,6 +64,8 @@ export function TaskManager() {
   const [preferencesLoaded, setPreferencesLoaded] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
 
+  // Get tasks based on current team context
+  const allTasks = currentTeam ? teamTasks : tasks;
   const rawViewTasks = getTasksForView(currentView);
   const viewTasks = sortTasks(rawViewTasks, sortBy);
 
@@ -184,7 +191,12 @@ export function TaskManager() {
         await updateTask(editingTask.id, taskData);
         showToast('Task updated successfully', 'success');
       } else {
-        await addTask(taskData);
+        // Use team-specific task creation if in team context
+        if (currentTeam) {
+          await addTeamTask(taskData);
+        } else {
+          await addTask(taskData);
+        }
         showToast('Task created successfully', 'success');
       }
       setIsTaskModalOpen(false);
@@ -262,9 +274,9 @@ export function TaskManager() {
   };
 
   const getViewStats = () => {
-    const today = tasks.filter(task => !task.completed && (!task.dueDate || new Date(task.dueDate) <= new Date())).length;
-    const total = tasks.filter(task => !task.completed).length;
-    const completed = tasks.filter(task => task.completed).length;
+    const today = allTasks.filter(task => !task.completed && (!task.dueDate || new Date(task.dueDate) <= new Date())).length;
+    const total = allTasks.filter(task => !task.completed).length;
+    const completed = allTasks.filter(task => task.completed).length;
     return { today, total, completed };
   };
 
@@ -299,6 +311,7 @@ export function TaskManager() {
           </div>
 
           <div className="flex items-center space-x-2 sm:space-x-3">
+            <TeamSelector />
             <KeyboardHint 
               keys={['cmd', 'k']} 
               label="Add Task"

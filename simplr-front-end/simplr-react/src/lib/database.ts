@@ -464,6 +464,40 @@ export class DatabaseService {
     }
   }
 
+  static async getTeamPreview(joinCode: string): Promise<Pick<Team, 'id' | 'name' | 'description' | 'member_count' | 'max_members' | 'created_at'> | null> {
+    try {
+      // Find team by join code
+      const { data: team, error: teamError } = await supabase
+        .from('teams')
+        .select('id, name, description, max_members, created_at')
+        .eq('join_code', joinCode)
+        .eq('status', 'active')
+        .single();
+
+      if (teamError || !team) {
+        return null;
+      }
+
+      // Get member count
+      const { count: memberCount } = await supabase
+        .from('team_members')
+        .select('*', { count: 'exact', head: true })
+        .eq('team_id', team.id);
+
+      return {
+        id: team.id,
+        name: team.name,
+        description: team.description,
+        member_count: memberCount || 0,
+        max_members: team.max_members,
+        created_at: team.created_at,
+      };
+    } catch (error) {
+      console.error('Error getting team preview:', error);
+      return null;
+    }
+  }
+
   static async joinTeam(joinCode: string, userId: string): Promise<Team> {
     try {
       // Find team by join code
@@ -839,6 +873,36 @@ export class DatabaseService {
     } catch (error) {
       console.error('Error fetching team tasks:', error);
       throw new Error('Failed to fetch team tasks');
+    }
+  }
+
+  static async createTeamTask(task: Omit<Task, 'id' | 'createdAt' | 'updatedAt'>, teamId: string, userId: string): Promise<Task> {
+    try {
+      const dbTask = {
+        ...mapTaskToDatabaseTask(task, userId),
+        team_id: teamId,
+        is_team_task: true,
+      };
+
+      const { data, error } = await supabase
+        .from('tasks')
+        .insert([dbTask])
+        .select()
+        .single();
+
+      if (error) {
+        console.error('Supabase error creating team task:', error);
+        throw error;
+      }
+
+      if (!data) {
+        throw new Error('No data returned from team task creation');
+      }
+
+      return mapDatabaseTaskToTask(data);
+    } catch (error) {
+      console.error('Error creating team task:', error);
+      throw new Error('Failed to create team task');
     }
   }
 }

@@ -91,14 +91,14 @@ function App() {
     <Router>
       <ThemeProvider defaultTheme="system">
         <AuthProvider>
-          <TeamProvider>
-            <ToastProvider>
+          <ToastProvider>
+            <TeamProvider>
               <div className="min-h-screen bg-background text-foreground">
                 <AppContent />
                 <Toaster />
               </div>
-            </ToastProvider>
-          </TeamProvider>
+            </TeamProvider>
+          </ToastProvider>
         </AuthProvider>
       </ThemeProvider>
     </Router>

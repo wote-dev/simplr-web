@@ -44,7 +44,7 @@ export function TeamSelector() {
 
   const getCurrentUserRole = () => {
     if (!currentTeam || !teamMembers.length) return null;
-    const currentMember = teamMembers.find(member => member.user_id === currentTeam.owner_id);
+    const currentMember = teamMembers.find(member => member.user_id === currentTeam.created_by);
     return currentMember?.role || 'member';
   };
 
@@ -130,7 +130,7 @@ export function TeamSelector() {
                             <div className="flex flex-col items-start flex-1">
                               <div className="flex items-center gap-2">
                                 <span className="font-medium text-sm">{team.name}</span>
-                                {team.owner_id && (
+                                {team.created_by && (
                                   <Badge variant="secondary" className="text-xs">
                                     Owner
                                   </Badge>
@@ -212,17 +212,15 @@ export function TeamSelector() {
         isOpen={showCreateModal} 
         onClose={() => setShowCreateModal(false)} 
       />
-      
       <JoinTeamModal 
         isOpen={showJoinModal} 
         onClose={() => setShowJoinModal(false)} 
       />
-      
       {currentTeam && (
         <TeamSettingsModal 
           isOpen={showSettingsModal} 
-          onClose={() => setShowSettingsModal(false)}
-          team={currentTeam}
+          onClose={() => setShowSettingsModal(false)} 
+          team={currentTeam} 
         />
       )}
     </>

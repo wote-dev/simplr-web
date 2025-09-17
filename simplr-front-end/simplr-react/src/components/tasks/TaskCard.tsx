@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Check, Edit, Trash2, Calendar, Clock, MoreVertical, Bell } from 'lucide-react';
 import type { Task } from '@/types';
 import { taskCategories, getTaskProgress, isTaskOverdue } from '@/hooks/useTasks';
+import { usePermissions } from '@/hooks/usePermissions';
 
 interface TaskCardProps {
   task: Task;
@@ -21,9 +22,16 @@ const TaskCardComponent = ({ task, onToggleComplete, onEdit, onDelete, onToggleC
   const [isUncompleting, setIsUncompleting] = useState(false);
   const [isDisappearing, setIsDisappearing] = useState(false);
   
+  const permissions = usePermissions();
   const categoryConfig = taskCategories[task.category];
   const progress = getTaskProgress(task);
   const overdue = isTaskOverdue(task);
+  
+  // Check permissions for this task
+  const canEdit = permissions.task.canEdit(task);
+  const canDelete = permissions.task.canDelete(task);
+  const canComplete = permissions.task.canComplete(task);
+  const showTaskActions = permissions.ui.showTaskActions(task);
   
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -112,9 +120,13 @@ const TaskCardComponent = ({ task, onToggleComplete, onEdit, onDelete, onToggleC
               <Button
                 variant="ghost"
                 size="icon"
-                onClick={handleToggleComplete}
-                disabled={isCompleting || isUncompleting}
+                onClick={canComplete ? handleToggleComplete : undefined}
+                disabled={!canComplete || isCompleting || isUncompleting}
                 className={`h-5 w-5 rounded-full border-2 flex items-center justify-center shrink-0 ${
+                  !canComplete 
+                    ? 'cursor-not-allowed opacity-50'
+                    : ''
+                } ${
                   task.completed 
                     ? 'bg-primary border-primary text-primary-foreground' 
                     : 'border-muted-foreground hover:border-primary'
@@ -242,30 +254,33 @@ const TaskCardComponent = ({ task, onToggleComplete, onEdit, onDelete, onToggleC
           </div>
           
           {/* Actions Menu */}
-          <div className="relative flex-shrink-0">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => setShowActions(!showActions)}
-              className="h-6 w-6 flex items-center justify-center shrink-0"
-            >
-              <MoreVertical className="h-3 w-3" />
-            </Button>
-            
-            {showActions && (
-              <div className="absolute right-0 top-8 z-10 bg-background border rounded-md shadow-lg py-1 min-w-[120px]">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => {
-                    onEdit(task);
-                    setShowActions(false);
-                  }}
-                  className="w-full justify-start px-3 py-1 h-auto"
-                >
-                  <Edit className="h-3 w-3 mr-2" />
-                  Edit
-                </Button>
+          {showTaskActions && (
+            <div className="relative flex-shrink-0">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setShowActions(!showActions)}
+                className="h-6 w-6 flex items-center justify-center shrink-0"
+              >
+                <MoreVertical className="h-3 w-3" />
+              </Button>
+              
+              {showActions && (
+                <div className="absolute right-0 top-8 z-10 bg-background border rounded-md shadow-lg py-1 min-w-[120px]">
+                  {canEdit && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => {
+                        onEdit(task);
+                        setShowActions(false);
+                      }}
+                      className="w-full justify-start px-3 py-1 h-auto"
+                    >
+                      <Edit className="h-3 w-3 mr-2" />
+                      Edit
+                    </Button>
+                  )}
                 
                 {task.checklist && task.checklist.length > 0 && (
                   <Button
@@ -281,22 +296,25 @@ const TaskCardComponent = ({ task, onToggleComplete, onEdit, onDelete, onToggleC
                     {showChecklist ? 'Hide' : 'Show'} Checklist
                   </Button>
                 )}
-                
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => {
-                    onDelete(task.id);
-                    setShowActions(false);
-                  }}
-                  className="w-full justify-start px-3 py-1 h-auto text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950"
-                >
-                  <Trash2 className="h-3 w-3 mr-2" />
-                  Delete
-                </Button>
-              </div>
-            )}
-          </div>
+                  
+                  {canDelete && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => {
+                        onDelete(task.id);
+                        setShowActions(false);
+                      }}
+                      className="w-full justify-start px-3 py-1 h-auto text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950"
+                    >
+                      <Trash2 className="h-3 w-3 mr-2" />
+                      Delete
+                    </Button>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </CardHeader>
       

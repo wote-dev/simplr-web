@@ -185,7 +185,9 @@ export interface ModalProps {
 // Hook Return Types
 export interface UseTasksReturn {
   tasks: Task[];
+  teamTasks: Task[];
   addTask: (task: Omit<Task, 'id' | 'createdAt' | 'updatedAt'>) => Promise<void>;
+  addTeamTask: (task: Omit<Task, 'id' | 'createdAt' | 'updatedAt' | 'team_id' | 'is_team_task'>) => Promise<void>;
   updateTask: (id: number, updates: Partial<Task>) => Promise<void>;
   deleteTask: (id: number) => Promise<void>;
   clearAllCompleted: () => Promise<void>;
