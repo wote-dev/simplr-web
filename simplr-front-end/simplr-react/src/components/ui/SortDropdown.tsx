@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronDown, Calendar, Clock, SortAsc, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -42,6 +42,23 @@ export function SortDropdown({ value, onValueChange, disabled }: SortDropdownPro
   
   const selectedOption = sortOptions.find(option => option.id === value) || sortOptions[0];
   const SelectedIcon = selectedOption.icon;
+
+  // Handle ESC key press to close dropdown
+  useEffect(() => {
+    const handleEscapeKey = (event: KeyboardEvent) => {
+      if (event.key === 'Escape' && isOpen) {
+        setIsOpen(false);
+      }
+    };
+
+    if (isOpen) {
+      document.addEventListener('keydown', handleEscapeKey);
+    }
+
+    return () => {
+      document.removeEventListener('keydown', handleEscapeKey);
+    };
+  }, [isOpen]);
 
   return (
     <div className="relative">

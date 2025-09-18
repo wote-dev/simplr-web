@@ -417,32 +417,83 @@ export class DatabaseService {
   // Team Management Operations
   static async createTeam(data: CreateTeamData, userId: string): Promise<Team> {
     try {
+      console.log('Creating team with data:', { data, userId });
+      
+      // Validate input data
+      if (!data.name || data.name.trim().length < 2) {
+        throw new Error('Team name must be at least 2 characters long');
+      }
+      
+      if (data.name.length > 100) {
+        throw new Error('Team name must be less than 100 characters');
+      }
+      
+      if (data.description && data.description.length > 500) {
+        throw new Error('Team description must be less than 500 characters');
+      }
+      
+      if (data.max_members && (data.max_members < 1 || data.max_members > 1000)) {
+        throw new Error('Max members must be between 1 and 1000');
+      }
+      
+      if (!userId) {
+        throw new Error('User ID is required');
+      }
+      
       // Generate a unique join code
       const joinCode = Math.random().toString(36).substring(2, 8).toUpperCase();
       
+      // Check if user is a guest user (guest users don't exist in auth.users table)
+      const isGuestUser = userId.startsWith('guest_');
+      console.log('Is guest user:', isGuestUser);
+      
+      const teamData = {
+        name: data.name.trim(),
+        description: data.description?.trim() || null,
+        join_code: joinCode,
+        max_members: data.max_members || 10,
+        created_by: isGuestUser ? null : userId,  // Set to null for guest users
+        status: 'active' as TeamStatus,
+      };
+      
+      console.log('Inserting team data:', teamData);
+      
       const { data: team, error } = await supabase
         .from('teams')
-        .insert({
-          name: data.name,
-          description: data.description,
-          join_code: joinCode,
-          max_members: data.max_members || 10,
-          created_by: userId,
-          status: 'active' as TeamStatus,
-        })
+        .insert(teamData)
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Supabase error creating team:', error);
+        throw error;
+      }
 
-      // Add creator as owner
-      await supabase
-        .from('team_members')
-        .insert({
-          team_id: team.id,
-          user_id: userId,
-          role: 'owner' as TeamRole,
-        });
+      console.log('Team created successfully:', team);
+      
+      // Add creator as owner (skip for guest users since they can't be in team_members table)
+      if (!isGuestUser) {
+        console.log('Adding creator as team owner:', { team_id: team.id, user_id: userId });
+        
+        const { error: memberError } = await supabase
+          .from('team_members')
+          .insert({
+            team_id: team.id,
+            user_id: userId,
+            role: 'owner' as TeamRole,
+          });
+          
+        if (memberError) {
+          console.error('Error adding team member:', memberError);
+          // Try to clean up the team if member creation fails
+          await supabase.from('teams').delete().eq('id', team.id);
+          throw new Error(`Failed to add team member: ${memberError.message}`);
+        }
+        
+        console.log('Team member added successfully');
+      } else {
+        console.log('Skipping team member creation for guest user');
+      }
 
       return {
         id: team.id,

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronDown, Plus, Users, Settings, LogOut } from 'lucide-react';
 import { useTeam } from '@/contexts/TeamContext';
@@ -25,6 +25,41 @@ export function TeamSelector() {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showJoinModal, setShowJoinModal] = useState(false);
   const [showSettingsModal, setShowSettingsModal] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  // Handle ESC key press to close dropdown
+  useEffect(() => {
+    const handleEscapeKey = (event: KeyboardEvent) => {
+      if (event.key === 'Escape' && isOpen) {
+        setIsOpen(false);
+      }
+    };
+
+    if (isOpen) {
+      document.addEventListener('keydown', handleEscapeKey);
+    }
+
+    return () => {
+      document.removeEventListener('keydown', handleEscapeKey);
+    };
+  }, [isOpen]);
+
+  // Handle click outside to close dropdown
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+
+    if (isOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isOpen]);
 
   const handleTeamSelect = (team: Team) => {
     setCurrentTeam(team);
@@ -55,7 +90,7 @@ export function TeamSelector() {
 
   return (
     <>
-      <div className="relative">
+      <div className="relative" ref={dropdownRef}>
         <Button
           variant="ghost"
           onClick={() => setIsOpen(!isOpen)}
@@ -99,7 +134,7 @@ export function TeamSelector() {
                   }`}
                 >
                   <Avatar className="h-8 w-8 mr-3">
-                    <div className="w-full h-full bg-gradient-to-br from-gray-400 to-gray-600 flex items-center justify-center text-white text-sm font-medium">
+                    <div className="w-full h-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white text-sm font-medium">
                       P
                     </div>
                   </Avatar>
