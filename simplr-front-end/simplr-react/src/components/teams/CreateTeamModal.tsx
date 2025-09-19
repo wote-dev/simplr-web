@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { X, Users, Hash, FileText } from 'lucide-react';
 import { useTeam } from '@/contexts/TeamContext';
+import { useToast } from '@/hooks/useToastContext';
+import { useModalState } from '@/contexts/ModalContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -22,12 +24,16 @@ export function CreateTeamModal({ isOpen, onClose }: CreateTeamModalProps) {
     max_members: 10,
   });
   const [errors, setErrors] = useState<Partial<CreateTeamData>>({});
+  const [submitError, setSubmitError] = useState<string>('');
 
   const handleInputChange = (field: keyof CreateTeamData, value: string | number) => {
     setFormData(prev => ({ ...prev, [field]: value }));
-    // Clear error when user starts typing
+    // Clear errors when user starts typing
     if (errors[field]) {
       setErrors(prev => ({ ...prev, [field]: undefined }));
+    }
+    if (submitError) {
+      setSubmitError('');
     }
   };
 
@@ -60,10 +66,15 @@ export function CreateTeamModal({ isOpen, onClose }: CreateTeamModalProps) {
     if (!validateForm()) return;
 
     try {
+      setSubmitError(''); // Clear any previous errors
       await createTeam(formData);
       handleClose();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error creating team:', error);
+      
+      // Set user-friendly error message
+      const errorMessage = error?.message || 'Failed to create team. Please try again.';
+      setSubmitError(errorMessage);
     }
   };
 
@@ -74,6 +85,7 @@ export function CreateTeamModal({ isOpen, onClose }: CreateTeamModalProps) {
       max_members: 10,
     });
     setErrors({});
+    setSubmitError('');
     onClose();
   };
 
@@ -144,6 +156,14 @@ export function CreateTeamModal({ isOpen, onClose }: CreateTeamModalProps) {
               <p className="text-sm text-destructive">{errors.max_members}</p>
             )}
           </div>
+
+          {submitError && (
+            <div className="p-3 bg-destructive/10 border border-destructive/20 rounded-lg">
+              <p className="text-sm text-destructive font-medium">
+                {submitError}
+              </p>
+            </div>
+          )}
 
           <div className="flex gap-3 pt-4">
             <Button

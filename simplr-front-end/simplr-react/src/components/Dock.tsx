@@ -144,7 +144,7 @@ export default function Dock({
   const isHovered = useMotionValue(0);
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 pointer-events-none z-[60]" style={{ height: panelHeight + 8 }}>
+    <div className="fixed bottom-0 left-0 right-0 pointer-events-none z-40" style={{ height: panelHeight + 8 }}>
       <motion.div
         onMouseMove={({ pageX }) => {
           isHovered.set(1);

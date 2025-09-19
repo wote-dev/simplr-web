@@ -1,9 +1,11 @@
-import { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
+import { ModalProvider } from '@/contexts/ModalContext';
 import { useTasks, sortTasks, type SortOption } from '@/hooks/useTasks';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useToast } from '@/hooks/useToastContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTeam } from '@/contexts/TeamContext';
+import { useModal } from '@/contexts/ModalContext';
 import { UserPreferencesService } from '@/lib/userPreferences';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -36,6 +38,14 @@ import lightLogo from '@/assets/spaces-light.png';
 import darkLogo from '@/assets/spaces-dark.png';
 
 export function TaskManager() {
+  return (
+    <ModalProvider>
+      <TaskManagerContent />
+    </ModalProvider>
+  );
+}
+
+function TaskManagerContent() {
   const { 
     tasks, 
     teamTasks,
@@ -53,6 +63,7 @@ export function TaskManager() {
   const { showToast } = useToast();
   const { user } = useAuth();
   const { currentTeam } = useTeam();
+  const { isAnyModalOpen } = useModal();
 
   const [currentView, setCurrentView] = useState<TaskView>('today');
   const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
@@ -599,33 +610,35 @@ export function TaskManager() {
         </AnimatePresence>
       </main>
 
-      <div>
-        <Dock
-          items={[
-            {
-              icon: <Home className="h-6 w-6" />,
-              label: "Today",
-              onClick: () => handleViewChange('today')
-            },
-            {
-              icon: <Calendar className="h-6 w-6" />,
-              label: "Upcoming",
-              onClick: () => handleViewChange('upcoming')
-            },
-            {
-              icon: <CheckCircle className="h-6 w-6" />,
-              label: "Completed",
-              onClick: () => handleViewChange('completed')
-            },
-            {
-              icon: <Plus className="h-6 w-6" />,
-              label: "Add Task",
-              onClick: handleAddTask,
-              className: "bg-foreground text-background hover:bg-foreground/90 dark:bg-white dark:text-black dark:hover:bg-gray-100"
-            }
-          ]}
-        />
-      </div>
+      {!isAnyModalOpen && (
+        <div>
+          <Dock
+            items={[
+              {
+                icon: <Home className="h-6 w-6" />,
+                label: "Today",
+                onClick: () => handleViewChange('today')
+              },
+              {
+                icon: <Calendar className="h-6 w-6" />,
+                label: "Upcoming",
+                onClick: () => handleViewChange('upcoming')
+              },
+              {
+                icon: <CheckCircle className="h-6 w-6" />,
+                label: "Completed",
+                onClick: () => handleViewChange('completed')
+              },
+              {
+                icon: <Plus className="h-6 w-6" />,
+                label: "Add Task",
+                onClick: handleAddTask,
+                className: "bg-foreground text-background hover:bg-foreground/90 dark:bg-white dark:text-black dark:hover:bg-gray-100"
+              }
+            ]}
+          />
+        </div>
+      )}
 
       <TaskModal
         isOpen={isTaskModalOpen}

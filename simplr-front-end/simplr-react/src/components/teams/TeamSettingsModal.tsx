@@ -1,19 +1,26 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { 
-  Settings, 
+  X, 
   Users, 
-  Copy, 
+  Settings, 
   Trash2, 
-  UserMinus, 
+  Copy, 
+  RefreshCw, 
   Crown, 
-  Shield, 
+  UserMinus, 
+  AlertTriangle,
+  Hash,
+  FileText,
+  Calendar,
+  Shield,
   User,
-  Check,
-  AlertTriangle
+  Check
 } from 'lucide-react';
 import { useTeam } from '@/contexts/TeamContext';
 import { useAuth } from '@/contexts/AuthContext';
+import { useToast } from '@/hooks/useToastContext';
+import { useModalState } from '@/contexts/ModalContext';
 import { usePermissions } from '@/hooks/usePermissions';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';

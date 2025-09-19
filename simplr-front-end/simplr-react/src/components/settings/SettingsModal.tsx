@@ -1,8 +1,6 @@
-import { 
-  Dialog, 
-  DialogContent, 
-  DialogTrigger 
-} from '@/components/ui/dialog';
+import React from 'react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { useModalState } from '@/contexts/ModalContext';
 import { SettingsView } from './SettingsView';
 
 interface SettingsModalProps {

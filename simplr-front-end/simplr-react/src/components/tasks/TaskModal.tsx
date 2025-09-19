@@ -8,6 +8,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { X, Plus, Trash2, Bell, BellOff } from 'lucide-react';
 import { useToast } from '@/hooks/useToastContext';
+import { useModalState } from '@/contexts/ModalContext';
 import type { Task, TaskCategory, ChecklistItem } from '@/types';
 import { taskCategories } from '@/hooks/useTasks';
 import { 

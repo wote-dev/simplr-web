@@ -417,7 +417,7 @@ export class DatabaseService {
   // Team Management Operations
   static async createTeam(data: CreateTeamData, userId: string): Promise<Team> {
     try {
-      console.log('Creating team with data:', { data, userId });
+      console.log('🚀 Creating team with data:', { data, userId });
       
       // Validate input data
       if (!data.name || data.name.trim().length < 2) {
@@ -440,62 +440,116 @@ export class DatabaseService {
         throw new Error('User ID is required');
       }
       
-      // Generate a unique join code
-      const joinCode = Math.random().toString(36).substring(2, 8).toUpperCase();
+      // Generate a consistent 6-character join code (matching database function)
+      const generateJoinCode = () => {
+        return Math.random().toString(36).substring(2, 8).toUpperCase().replace(/[0OIL]/g, 'X');
+      };
+      
+      const joinCode = generateJoinCode();
       
       // Check if user is a guest user (guest users don't exist in auth.users table)
       const isGuestUser = userId.startsWith('guest_');
-      console.log('Is guest user:', isGuestUser);
+      console.log('👤 Is guest user:', isGuestUser);
       
-      const teamData = {
+      // Prepare team data - handle potential schema differences
+      const teamData: any = {
         name: data.name.trim(),
         description: data.description?.trim() || null,
         join_code: joinCode,
         max_members: data.max_members || 10,
-        created_by: isGuestUser ? null : userId,  // Set to null for guest users
         status: 'active' as TeamStatus,
       };
       
-      console.log('Inserting team data:', teamData);
-      
-      const { data: team, error } = await supabase
-        .from('teams')
-        .insert(teamData)
-        .select()
-        .single();
-
-      if (error) {
-        console.error('Supabase error creating team:', error);
-        throw error;
-      }
-
-      console.log('Team created successfully:', team);
-      
-      // Add creator as owner (skip for guest users since they can't be in team_members table)
+      // Only set created_by if the column exists and user is authenticated
       if (!isGuestUser) {
-        console.log('Adding creator as team owner:', { team_id: team.id, user_id: userId });
-        
-        const { error: memberError } = await supabase
-          .from('team_members')
-          .insert({
-            team_id: team.id,
-            user_id: userId,
-            role: 'owner' as TeamRole,
-          });
+        teamData.created_by = userId;
+      }
+      
+      console.log('📝 Inserting team data:', teamData);
+      
+      // Try to create the team with error handling for schema issues
+      let team;
+      try {
+        const { data: teamResult, error } = await supabase
+          .from('teams')
+          .insert(teamData)
+          .select()
+          .single();
+
+        if (error) {
+          console.error('❌ Supabase error creating team:', error);
           
-        if (memberError) {
-          console.error('Error adding team member:', memberError);
-          // Try to clean up the team if member creation fails
-          await supabase.from('teams').delete().eq('id', team.id);
-          throw new Error(`Failed to add team member: ${memberError.message}`);
+          // Handle specific schema errors
+          if (error.message.includes('created_by') || error.message.includes('column')) {
+            console.log('🔧 Schema issue detected, retrying without created_by column');
+            const { created_by, ...teamDataWithoutCreatedBy } = teamData;
+            const { data: retryResult, error: retryError } = await supabase
+              .from('teams')
+              .insert(teamDataWithoutCreatedBy)
+              .select()
+              .single();
+              
+            if (retryError) {
+              throw retryError;
+            }
+            team = retryResult;
+          } else {
+            throw error;
+          }
+        } else {
+          team = teamResult;
         }
+      } catch (insertError: any) {
+        console.error('💥 Failed to insert team:', insertError);
         
-        console.log('Team member added successfully');
-      } else {
-        console.log('Skipping team member creation for guest user');
+        // Provide more specific error messages
+        if (insertError.message.includes('duplicate key')) {
+          throw new Error('A team with this join code already exists. Please try again.');
+        } else if (insertError.message.includes('permission')) {
+          throw new Error('You do not have permission to create teams. Please check your account status.');
+        } else if (insertError.message.includes('policy')) {
+          throw new Error('Team creation is currently restricted. Please contact support.');
+        } else {
+          throw new Error(`Failed to create team: ${insertError.message}`);
+        }
       }
 
-      return {
+      console.log('✅ Team created successfully:', team);
+      
+      // Add creator as owner (only for authenticated users)
+      if (!isGuestUser) {
+        console.log('👑 Adding creator as team owner:', { team_id: team.id, user_id: userId });
+        
+        try {
+          const { error: memberError } = await supabase
+            .from('team_members')
+            .insert({
+              team_id: team.id,
+              user_id: userId,
+              role: 'owner' as TeamRole,
+            });
+            
+          if (memberError) {
+            console.error('❌ Error adding team member:', memberError);
+            // Try to clean up the team if member creation fails
+            console.log('🧹 Cleaning up team due to member creation failure');
+            await supabase.from('teams').delete().eq('id', team.id);
+            throw new Error(`Failed to add team member: ${memberError.message}`);
+          }
+          
+          console.log('✅ Team member added successfully');
+        } catch (memberError: any) {
+          console.error('💥 Team member creation failed:', memberError);
+          // Clean up the team
+          await supabase.from('teams').delete().eq('id', team.id);
+          throw new Error(`Failed to set up team ownership: ${memberError.message}`);
+        }
+      } else {
+        console.log('⏭️  Skipping team member creation for guest user');
+      }
+
+      // Return the team object with proper typing
+      const result: Team = {
         id: team.id,
         name: team.name,
         description: team.description,
@@ -503,15 +557,29 @@ export class DatabaseService {
         join_code: team.join_code,
         status: team.status,
         max_members: team.max_members,
-        created_by: team.created_by,
+        created_by: team.created_by || null,
         created_at: team.created_at,
         updated_at: team.updated_at,
-        member_count: 1,
-        user_role: 'owner',
+        member_count: isGuestUser ? 0 : 1, // Guest users don't count as members
+        user_role: isGuestUser ? 'owner' : 'owner', // Both are owners, but guest ownership is implicit
       };
-    } catch (error) {
-      console.error('Error creating team:', error);
-      throw new Error('Failed to create team');
+      
+      console.log('🎉 Team creation completed:', result);
+      return result;
+      
+    } catch (error: any) {
+      console.error('💥 Error creating team:', error);
+      
+      // Provide user-friendly error messages
+      if (error.message.includes('Team name')) {
+        throw error; // Pass through validation errors as-is
+      } else if (error.message.includes('permission') || error.message.includes('policy')) {
+        throw new Error('You do not have permission to create teams. Please sign in or contact support.');
+      } else if (error.message.includes('network') || error.message.includes('fetch')) {
+        throw new Error('Network error. Please check your connection and try again.');
+      } else {
+        throw new Error(`Failed to create team: ${error.message || 'Unknown error'}`);
+      }
     }
   }
 

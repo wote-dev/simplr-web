@@ -8,6 +8,8 @@ import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { DatabaseService } from '@/lib/database';
 import type { Team } from '@/types';
+import { useToast } from '@/hooks/useToastContext';
+import { useModalState } from '@/contexts/ModalContext';
 
 interface JoinTeamModalProps {
   isOpen: boolean;
